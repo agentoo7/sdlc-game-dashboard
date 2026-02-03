@@ -16,7 +16,7 @@ class EventCreate(BaseModel):
 
 
 class EventResponse(BaseModel):
-    """Event creation response."""
+    """Event creation response - simple acknowledgment."""
 
     id: UUID
     timestamp: datetime

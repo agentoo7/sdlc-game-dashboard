@@ -313,17 +313,30 @@ Không có secondary users đặc biệt. Dashboard được thiết kế primar
 
 **Smart Event Processing:**
 
-Client gửi business events, Server tự infer visual actions:
+Client App (AI Agents) gửi notifications, Server xử lý visualization:
 
 ```
-Client sends:                    Server infers:
-{                                1. BA-001 walks to Dev-001
-  "from_agent": "BA-001",        2. Handoff artifact animation
-  "to_agent": "Dev-001",         3. BA-001 walks back to desk
-  "event_type": "WORK_REQUEST",  4. Dev-001 starts working
-  "payload": {...}               5. Log event with I/O
-}
+CLIENT APP (AI Agents)              SERVER (Dashboard)
+No visualization                    ALL visualization
+
+ba_agent.receive(client_001)   →   POST /api/events
+                                   { from: "Client-001",
+                                     to: "BA-001",
+                                     type: "WORK_REQUEST" }
+
+                               ←   { status: "accepted" }
+
+                                   Server decides HOW to render:
+                                   • Animate BA-001 receiving
+                                   • Show thought bubble
+                                   • Update status indicator
+
+                                   Viewers see animation in browser
 ```
+
+→ Client App chỉ thông báo actions qua API
+→ Server quyết định cách visualize
+→ Viewers xem dashboard do server render
 
 **Event Types (Business-Driven):**
 
@@ -377,7 +390,7 @@ Client sends:                    Server infers:
 
 | Feature | Reason | Future Version |
 |---------|--------|----------------|
-| WebSocket real-time | REST API + polling đủ | V2 nếu cần |
+| WebSocket real-time | REST API response-based đủ (không cần polling) | V2 nếu cần |
 | Explicit move commands | Server infers từ business events | N/A |
 | Sound effects | Time consuming | V2 |
 | Particle effects | Polish feature | V2 |
@@ -422,7 +435,7 @@ Client sends:                    Server infers:
 - Timeline with filter
 
 **V2.0 - Advanced:**
-- WebSocket for true real-time
+- WebSocket for viewer sync (multiple viewers see same animation)
 - Sound effects
 - Particle effects (celebrations)
 - Emotion contagion

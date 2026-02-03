@@ -21,8 +21,9 @@ This document describes the technical architecture for SDLC Game Dashboard - a w
 | **Containerized** | All services run in Docker containers |
 | **API-First** | Clear contract between frontend and backend |
 | **Stateless Backend** | All state persisted in PostgreSQL |
-| **Polling-Based** | REST API with client-side polling (no WebSocket for MVP) |
-| **Smart Server** | Server infers visual actions from business events |
+| **Simple REST** | Client notifies via API, server responds with status |
+| **Smart Server** | Server handles ALL visualization logic |
+| **Separation** | Client (AI agents) has NO rendering - Server renders for viewers |
 
 ---
 
@@ -32,19 +33,26 @@ This document describes the technical architecture for SDLC Game Dashboard - a w
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                           EXTERNAL SYSTEMS                               │
+│                        CLIENT APPS (AI Agents)                           │
+│                        No visualization - just code                      │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
 │    ┌──────────────┐              ┌──────────────┐                       │
 │    │   Dev App    │              │   Dev App    │      (Multiple        │
 │    │   Team A     │              │   Team B     │       Teams)          │
+│    │              │              │              │                       │
+│    │ • Create     │              │ • Create     │                       │
+│    │   agents     │              │   agents     │                       │
+│    │ • Send msgs  │              │ • Send msgs  │                       │
+│    │ • Process    │              │ • Process    │                       │
 │    └──────┬───────┘              └──────┬───────┘                       │
 │           │                             │                               │
-│           │  POST /api/events           │                               │
+│           │  REST API (notify actions)  │                               │
 │           └─────────────┬───────────────┘                               │
 │                         ▼                                               │
 ├─────────────────────────────────────────────────────────────────────────┤
-│                        SDLC GAME DASHBOARD                              │
+│                    SERVER (SDLC GAME DASHBOARD)                         │
+│                    ALL visualization logic here                          │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
 │  ┌─────────────────────────────────────────────────────────────────┐   │
@@ -52,17 +60,20 @@ This document describes the technical architecture for SDLC Game Dashboard - a w
 │  │                                                                   │   │
 │  │   ┌─────────────────┐     ┌─────────────────┐     ┌───────────┐ │   │
 │  │   │    Frontend     │     │     Backend     │     │  Database │ │   │
-│  │   │   (Phaser.js)   │────▶│    (FastAPI)    │────▶│(PostgreSQL│ │   │
+│  │   │   (Phaser.js)   │◄───▶│    (FastAPI)    │────▶│(PostgreSQL│ │   │
 │  │   │                 │     │                 │     │           │ │   │
+│  │   │  Renders game   │     │ • Receive API   │     │ • Store   │ │   │
+│  │   │  for viewers    │     │ • Update state  │     │   events  │ │   │
+│  │   │                 │     │ • Serve data    │     │ • Logs    │ │   │
 │  │   │   Port: 3000    │     │   Port: 8000    │     │Port: 5432 │ │   │
 │  │   └─────────────────┘     └─────────────────┘     └───────────┘ │   │
-│  │           ▲                                                       │   │
+│  │           │                                                       │   │
 │  └───────────┼───────────────────────────────────────────────────────┘   │
-│              │                                                           │
+│              │  Serve web UI                                             │
 ├──────────────┼───────────────────────────────────────────────────────────┤
 │              │                    VIEWERS                                │
-│              │                                                           │
-│    ┌─────────┴─────────┐    ┌──────────────────┐                        │
+│              ▼                    (Watch only)                           │
+│    ┌───────────────────┐    ┌──────────────────┐                        │
 │    │     Spectator     │    │      Judge       │                        │
 │    │     (Browser)     │    │    (Browser)     │                        │
 │    └───────────────────┘    └──────────────────┘                        │
@@ -86,63 +97,52 @@ This document describes the technical architecture for SDLC Game Dashboard - a w
 ### 3.1 Event Processing Flow
 
 ```
-┌──────────────┐                                              ┌──────────────┐
-│   Dev App    │                                              │  Dashboard   │
-│   (Client)   │                                              │  (Viewer)    │
-└──────┬───────┘                                              └──────┬───────┘
-       │                                                             │
-       │ 1. POST /api/events                                         │
-       │    {from: "BA-001", to: "Dev-001",                          │
-       │     type: "WORK_REQUEST", payload: {...}}                   │
-       │                                                             │
-       ▼                                                             │
-┌──────────────────────────────────────────────────────────────────┐ │
-│                         BACKEND (FastAPI)                         │ │
-├──────────────────────────────────────────────────────────────────┤ │
-│                                                                   │ │
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────────────┐  │ │
-│  │  Validate   │───▶│  Log Event  │───▶│  Infer Visual       │  │ │
-│  │  Request    │    │  to DB      │    │  Actions            │  │ │
-│  └─────────────┘    └─────────────┘    └──────────┬──────────┘  │ │
-│                                                    │              │ │
-│                                                    ▼              │ │
-│                                        ┌─────────────────────┐   │ │
-│                                        │  Update Agent       │   │ │
-│                                        │  States + Queue     │   │ │
-│                                        │  Movements          │   │ │
-│                                        └─────────────────────┘   │ │
-│                                                                   │ │
-└──────────────────────────────────────────────────────────────────┘ │
-                                                                     │
-       ┌─────────────────────────────────────────────────────────────┘
-       │
-       │ 2. GET /api/companies/{id}/state (polling every 1s)
-       │
-       ▼
 ┌──────────────────────────────────────────────────────────────────┐
-│                         BACKEND (FastAPI)                         │
+│                    CLIENT APP (AI Agents)                         │
+│                    NO visualization here                          │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  AI Agent code runs:                                             │
+│  • ba_agent.receive_request(from=client, task="...")            │
+│  • dev_agent.process_task(...)                                   │
+│  • qa_agent.review(...)                                          │
+│                                                                   │
+│  Each action calls server API to notify:                         │
+│  POST /api/events { from, to, type, payload }                    │
+│                                                                   │
+└────────────────────────────────────────────────────────────────│──┘
+                                                                 │
+                                                                 ▼
+┌──────────────────────────────────────────────────────────────────┐
+│                    SERVER (Dashboard Backend)                     │
 ├──────────────────────────────────────────────────────────────────┤
 │                                                                   │
 │  ┌─────────────┐    ┌─────────────┐    ┌─────────────────────┐  │
-│  │  Query      │───▶│  Build      │───▶│  Return State       │  │
-│  │  Current    │    │  Response   │    │  + Pending          │  │
-│  │  State      │    │  Object     │    │  Movements          │  │
+│  │  Validate   │───▶│  Log Event  │───▶│  Update State       │  │
+│  │  Request    │    │  to DB      │    │  in Memory/DB       │  │
 │  └─────────────┘    └─────────────┘    └─────────────────────┘  │
+│                                                                   │
+│  Response to Client: { status: "accepted" }                      │
+│                                                                   │
+│  Server-side visualization logic:                                │
+│  ┌─────────────────────────────────────────────────────────────┐ │
+│  │  Based on event_type, decide HOW to render:                 │ │
+│  │  • WORK_REQUEST → animate walk, handoff, return             │ │
+│  │  • THINKING → show thought bubble                           │ │
+│  │  • WORKING → show working animation                         │ │
+│  └─────────────────────────────────────────────────────────────┘ │
 │                                                                   │
 └──────────────────────────────────────────────────────────────────┘
-       │
-       │ 3. Response: {agents: [...], pending_movements: [...]}
-       │
-       ▼
+                                                                 │
+                                                                 │ Serve web UI
+                                                                 ▼
 ┌──────────────────────────────────────────────────────────────────┐
-│                       FRONTEND (Phaser.js)                        │
+│                    FRONTEND (Phaser.js served to viewers)         │
 ├──────────────────────────────────────────────────────────────────┤
 │                                                                   │
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────────────┐  │
-│  │  Diff with  │───▶│  Trigger    │───▶│  Update Sprites     │  │
-│  │  Local      │    │  Animations │    │  & Scene            │  │
-│  │  State      │    │  (Tweens)   │    │                     │  │
-│  └─────────────┘    └─────────────┘    └─────────────────────┘  │
+│  Viewers open browser → load Phaser game from server            │
+│  Game fetches state and renders visualization                    │
+│  ALL animation logic determined by server state                  │
 │                                                                   │
 └──────────────────────────────────────────────────────────────────┘
 ```
@@ -230,9 +230,9 @@ frontend/
     │   ├── Zone.ts               # Department zone
     │   └── Office.ts             # Office tilemap
     ├── managers/
-    │   ├── StateManager.ts       # Sync with backend
-    │   ├── AnimationManager.ts   # Animation control
-    │   └── MovementManager.ts    # Agent pathfinding
+    │   ├── StateManager.ts       # Fetch and cache server state
+    │   ├── AnimationManager.ts   # Animation control (from server state)
+    │   └── MovementManager.ts    # Agent pathfinding (from server state)
     ├── services/
     │   └── ApiService.ts         # Backend communication
     ├── types/
@@ -322,39 +322,42 @@ class Agent extends Phaser.GameObjects.Container {
 }
 ```
 
-### 4.4 State Management
+### 4.4 State Management (Server-Side)
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                       StateManager                               │
+│                    SERVER STATE MANAGEMENT                       │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
 │  ┌─────────────────┐                                            │
-│  │  Local State    │  - Current company ID                      │
-│  │                 │  - Agent positions & statuses              │
-│  │                 │  - Pending animations                      │
+│  │  Server State   │  - All companies                           │
+│  │  (DB + Memory)  │  - All agents with positions & statuses    │
+│  │                 │  - Animation queues per company            │
 │  └────────┬────────┘                                            │
 │           │                                                      │
-│           │  poll every 1s                                      │
+│           │  Client App calls POST /api/events                  │
 │           ▼                                                      │
 │  ┌─────────────────┐                                            │
-│  │  ApiService     │  GET /api/companies/{id}/state            │
-│  │                 │                                            │
+│  │  Event Handler  │  Based on event_type, SERVER decides:      │
+│  │  (Server-side)  │  WORK_REQUEST → queue walk, handoff        │
+│  │                 │  THINKING → queue thought bubble           │
 │  └────────┬────────┘                                            │
 │           │                                                      │
-│           │  response                                           │
+│           │  Update server state                                │
 │           ▼                                                      │
 │  ┌─────────────────┐                                            │
-│  │  Diff Engine    │  Compare server state vs local state       │
-│  │                 │  Generate list of changes                  │
+│  │  State Store    │  Update agent positions, statuses          │
+│  │                 │  Queue animations for frontend             │
 │  └────────┬────────┘                                            │
 │           │                                                      │
-│           │  changes                                            │
+│           │  Frontend fetches state                             │
 │           ▼                                                      │
 │  ┌─────────────────┐                                            │
-│  │  Animation      │  Queue animations based on changes         │
-│  │  Manager        │  Execute tweens sequentially               │
+│  │  Frontend       │  GET /api/companies/{id}/state             │
+│  │  (Viewers)      │  Render based on server state              │
 │  └─────────────────┘                                            │
+│                                                                  │
+│  Note: ALL visualization logic on SERVER, client just notifies  │
 │                                                                  │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -541,7 +544,12 @@ class EventService:
         db.add(db_event)
         await db.commit()
 
-        return EventResponse(id=db_event.id, status="accepted")
+        # Simple acknowledgment - client handles animation logic
+        return EventResponse(
+            id=db_event.id,
+            timestamp=db_event.timestamp,
+            status="accepted",
+        )
 
     def _infer_actions(self, event: EventCreate) -> list[str]:
         """
@@ -572,7 +580,8 @@ class EventService:
 
 class StateService:
     """
-    Computes current state for dashboard polling.
+    Computes current state for initial load and company switching.
+    Note: NOT used for polling - animations driven by event responses.
     """
 
     async def get_company_state(
@@ -941,7 +950,7 @@ External Access:
 | **Object Pooling** | Reuse agent/artifact objects |
 | **Culling** | Only render visible agents |
 | **WebGL** | Use WebGL renderer (default) |
-| **Debounced Polling** | Skip poll if previous request pending |
+| **Animation Queue** | Process response actions sequentially |
 
 ### 9.2 Backend Optimization
 
@@ -1043,6 +1052,7 @@ docker-compose exec backend alembic upgrade head
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-02-03 | Binh Tran | Initial architecture document |
+| 1.1 | 2026-02-03 | Binh Tran | Clarified architecture: Client (AI agents) notifies, Server handles ALL visualization |
 
 ---
 
@@ -1055,7 +1065,7 @@ docker-compose exec backend alembic upgrade head
 | Database | PostgreSQL, MySQL, MongoDB | PostgreSQL | JSON support, reliability, SQLModel compatibility |
 | ORM | SQLAlchemy, Django ORM, Tortoise | SQLModel | Single model for DB + API |
 | Container Runtime | Docker Desktop, Colima, Podman | Colima | Lightweight, macOS native |
-| Real-time Comm | WebSocket, SSE, Polling | REST + Polling | Simpler for MVP, sufficient latency |
+| Real-time Comm | WebSocket, SSE, Polling | Simple REST | Client sends event, server confirms, client animates locally |
 
 ## Appendix B: File Naming Conventions
 
