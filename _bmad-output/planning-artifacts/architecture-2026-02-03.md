@@ -476,7 +476,10 @@ backend/
 │  │  ├── /companies/{id}/logs                                 │  │
 │  │  │                    GET    → get_company_logs()         │  │
 │  │  │                                                         │  │
-│  │  └── /events          POST   → create_event()             │  │
+│  │  ├── /events          POST   → create_event()             │  │
+│  │  │                                                         │  │
+│  │  └── /roles           GET    → list_role_configs()        │  │
+│  │       (returns all role configs including auto-generated) │  │
 │  └───────────────────────────────────────────────────────────┘  │
 │                                                                  │
 │  Middleware:                                                     │
@@ -624,58 +627,116 @@ class StateService:
 ### 6.1 Entity Relationship Diagram
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                         DATABASE SCHEMA                          │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  ┌─────────────────┐         ┌─────────────────┐               │
-│  │    companies    │         │     agents      │               │
-│  ├─────────────────┤         ├─────────────────┤               │
-│  │ id (PK, UUID)   │◄────────│ company_id (FK) │               │
-│  │ name            │    1:N  │ id (PK, UUID)   │               │
-│  │ description     │         │ agent_id        │               │
-│  │ created_at      │         │ name            │               │
-│  │ updated_at      │         │ role            │               │
-│  └────────┬────────┘         │ status          │               │
-│           │                   │ current_task    │               │
-│           │                   │ position_zone   │               │
-│           │                   │ position_x      │               │
-│           │                   │ position_y      │               │
-│           │                   │ created_at      │               │
-│           │                   └─────────────────┘               │
-│           │                                                      │
-│           │ 1:N                                                  │
-│           │                                                      │
-│           ▼                                                      │
-│  ┌─────────────────┐         ┌─────────────────┐               │
-│  │     events      │         │ movement_queue  │               │
-│  ├─────────────────┤         ├─────────────────┤               │
-│  │ id (PK, UUID)   │         │ id (PK, UUID)   │               │
-│  │ company_id (FK) │         │ company_id (FK) │               │
-│  │ from_agent_id   │         │ agent_id        │               │
-│  │ to_agent_id     │         │ from_zone       │               │
-│  │ event_type      │         │ to_zone         │               │
-│  │ payload (JSON)  │         │ purpose         │               │
-│  │ inferred_actions│         │ artifact        │               │
-│  │ timestamp       │         │ status          │               │
-│  └─────────────────┘         │ created_at      │               │
-│                               │ completed_at    │               │
-│                               └─────────────────┘               │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           DATABASE SCHEMA                                │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  ┌─────────────────┐                                                    │
+│  │  role_configs   │  ← NEW: Dynamic role configuration                │
+│  ├─────────────────┤                                                    │
+│  │ id (PK, UUID)   │    Stores colors & display names for all roles   │
+│  │ role_id (unique)│    Default BMAD roles seeded on startup          │
+│  │ display_name    │    Custom roles auto-created when first seen     │
+│  │ color           │                                                    │
+│  │ zone_color      │                                                    │
+│  │ is_default      │                                                    │
+│  │ created_at      │                                                    │
+│  └─────────────────┘                                                    │
+│                                                                          │
+│  ┌─────────────────┐         ┌─────────────────┐                       │
+│  │    companies    │         │     agents      │                       │
+│  ├─────────────────┤         ├─────────────────┤                       │
+│  │ id (PK, UUID)   │◄────────│ company_id (FK) │                       │
+│  │ name            │    1:N  │ id (PK, UUID)   │                       │
+│  │ description     │         │ agent_id        │                       │
+│  │ created_at      │         │ name            │                       │
+│  │ updated_at      │         │ role (string)   │─ ─ ─▶ role_configs   │
+│  └────────┬────────┘         │ status          │       (lookup)       │
+│           │                   │ current_task    │                       │
+│           │                   │ position_zone   │                       │
+│           │                   │ position_x      │                       │
+│           │                   │ position_y      │                       │
+│           │                   │ created_at      │                       │
+│           │                   └─────────────────┘                       │
+│           │                                                              │
+│           │ 1:N                                                          │
+│           │                                                              │
+│           ▼                                                              │
+│  ┌─────────────────┐         ┌─────────────────┐                       │
+│  │     events      │         │ movement_queue  │                       │
+│  ├─────────────────┤         ├─────────────────┤                       │
+│  │ id (PK, UUID)   │         │ id (PK, UUID)   │                       │
+│  │ company_id (FK) │         │ company_id (FK) │                       │
+│  │ from_agent_id   │         │ agent_id        │                       │
+│  │ to_agent_id     │         │ from_zone       │                       │
+│  │ event_type      │         │ to_zone         │                       │
+│  │ payload (JSON)  │         │ purpose         │                       │
+│  │ inferred_actions│         │ artifact        │                       │
+│  │ timestamp       │         │ status          │                       │
+│  └─────────────────┘         │ created_at      │                       │
+│                               │ completed_at    │                       │
+│                               └─────────────────┘                       │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 6.2 Indexes
+### 6.2 Dynamic Role System
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    DYNAMIC ROLE CREATION FLOW                            │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  1. Client registers company with agents:                               │
+│     POST /api/companies                                                 │
+│     {                                                                    │
+│       "agents": [                                                        │
+│         {"agent_id": "DEV-001", "role": "developer", ...},  ← Known    │
+│         {"agent_id": "SEC-001", "role": "security", ...}    ← Unknown  │
+│       ]                                                                  │
+│     }                                                                    │
+│                                                                          │
+│  2. Server checks role_configs table:                                   │
+│     ┌────────────────────────────────────────────────────────────────┐ │
+│     │  "developer" → Found in role_configs (default BMAD role)       │ │
+│     │  "security"  → NOT found → Auto-create new role config         │ │
+│     └────────────────────────────────────────────────────────────────┘ │
+│                                                                          │
+│  3. Auto-create role config for unknown role:                           │
+│     {                                                                    │
+│       "role_id": "security",                                            │
+│       "display_name": "Security",        ← Auto from snake_case        │
+│       "color": "#EC4899",                ← Next from color palette     │
+│       "zone_color": "rgba(236,72,153,0.3)",                            │
+│       "is_default": false                                               │
+│     }                                                                    │
+│                                                                          │
+│  4. Frontend receives role_config in state response:                    │
+│     GET /api/companies/{id}/state                                       │
+│     {                                                                    │
+│       "agents": [...],                                                  │
+│       "role_configs": {                                                 │
+│         "developer": {"display_name": "Developer", "color": "#22C55E"},│
+│         "security": {"display_name": "Security", "color": "#EC4899"}   │
+│       }                                                                  │
+│     }                                                                    │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### 6.3 Indexes
 
 ```sql
 -- Performance indexes
 CREATE INDEX idx_agents_company ON agents(company_id);
 CREATE INDEX idx_agents_agent_id ON agents(agent_id);
+CREATE INDEX idx_agents_role ON agents(role);
 CREATE INDEX idx_events_company ON events(company_id);
 CREATE INDEX idx_events_timestamp ON events(timestamp DESC);
 CREATE INDEX idx_events_type ON events(event_type);
 CREATE INDEX idx_movements_company ON movement_queue(company_id);
 CREATE INDEX idx_movements_status ON movement_queue(status);
+CREATE UNIQUE INDEX idx_role_configs_role_id ON role_configs(role_id);
 ```
 
 ---

@@ -334,13 +334,49 @@ from sqlmodel import SQLModel, Field, Relationship
 from sqlalchemy import Column, JSON
 
 
-class AgentRole(str, Enum):
-    CUSTOMER = "Customer"
-    BA = "BA"
-    PM = "PM"
-    ARCHITECT = "Architect"
-    DEVELOPER = "Developer"
-    QA = "QA"
+# AgentRole is now a dynamic string (not Enum)
+# Default roles (BMAD method): customer, ba, pm, architect, developer, qa
+# Custom roles: Any string sent by client (e.g., "security_engineer", "devops")
+
+# ==================== ROLE CONFIG (Dynamic Roles) ====================
+class RoleConfig(SQLModel, table=True):
+    """
+    Stores role configurations including auto-generated colors for custom roles.
+    Default BMAD roles are seeded on startup.
+    Custom roles are auto-created when first encountered.
+    """
+    __tablename__ = "role_configs"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    role_id: str = Field(unique=True, index=True, max_length=50)  # e.g., "developer", "security_engineer"
+    display_name: str = Field(max_length=100)  # e.g., "Developer", "Security Engineer"
+    color: str = Field(max_length=20)  # e.g., "#22C55E"
+    zone_color: str = Field(max_length=50)  # e.g., "rgba(34, 197, 94, 0.3)"
+    is_default: bool = Field(default=False)  # True for BMAD roles
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+# Default BMAD roles (seeded on startup)
+DEFAULT_ROLES = [
+    {"role_id": "customer", "display_name": "Customer", "color": "#9CA3AF", "is_default": True},
+    {"role_id": "ba", "display_name": "Business Analyst", "color": "#3B82F6", "is_default": True},
+    {"role_id": "pm", "display_name": "Project Manager", "color": "#8B5CF6", "is_default": True},
+    {"role_id": "architect", "display_name": "Architect", "color": "#F97316", "is_default": True},
+    {"role_id": "developer", "display_name": "Developer", "color": "#22C55E", "is_default": True},
+    {"role_id": "qa", "display_name": "QA Engineer", "color": "#EF4444", "is_default": True},
+]
+
+# Extended color palette for auto-generated custom roles
+CUSTOM_ROLE_COLORS = [
+    "#EC4899",  # Pink 500
+    "#06B6D4",  # Cyan 500
+    "#84CC16",  # Lime 500
+    "#F59E0B",  # Amber 500
+    "#6366F1",  # Indigo 500
+    "#14B8A6",  # Teal 500
+    "#F43F5E",  # Rose 500
+    "#0EA5E9",  # Sky 500
+]
 
 
 class AgentStatus(str, Enum):
@@ -383,7 +419,7 @@ class Agent(SQLModel, table=True):
     company_id: UUID = Field(foreign_key="companies.id", index=True)
     agent_id: str = Field(index=True, max_length=50)  # e.g., "Dev-001"
     name: str = Field(max_length=100)
-    role: AgentRole
+    role: str = Field(max_length=50)  # Dynamic role ID (e.g., "developer", "security_engineer")
     status: AgentStatus = Field(default=AgentStatus.IDLE)
     current_task: Optional[str] = Field(default=None, max_length=500)
     position_zone: str = Field(default="")  # Current zone
@@ -441,7 +477,7 @@ from datetime import datetime
 class AgentCreate(BaseModel):
     agent_id: str
     name: str
-    role: AgentRole
+    role: str  # Dynamic role ID (e.g., "developer", "security_engineer")
 
 
 class CompanyCreate(BaseModel):
@@ -481,7 +517,8 @@ class EventResponse(BaseModel):
 # ==================== STATE ====================
 class AgentState(BaseModel):
     agent_id: str
-    role: AgentRole
+    role: str  # Dynamic role ID
+    role_config: Optional[dict] = None  # {display_name, color, zone_color}
     name: str
     status: AgentStatus
     position: dict  # {"zone": "Dev", "x": 100, "y": 150}
