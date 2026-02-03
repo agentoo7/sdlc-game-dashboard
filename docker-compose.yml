@@ -1,0 +1,62 @@
+services:
+  # ==================== FRONTEND ====================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_URL=http://localhost:8002/api
+    depends_on:
+      - backend
+    networks:
+      - dashboard-network
+
+  # ==================== BACKEND ====================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8002:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://dashboard:dashboard@db:5432/sdlc_dashboard
+      - CORS_ORIGINS=["http://localhost:3000"]
+      - LOG_LEVEL=INFO
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - dashboard-network
+
+  # ==================== DATABASE ====================
+  db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=dashboard
+      - POSTGRES_PASSWORD=dashboard
+      - POSTGRES_DB=sdlc_dashboard
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dashboard"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dashboard-network
+
+volumes:
+  postgres_data:
+
+networks:
+  dashboard-network:
+    driver: bridge

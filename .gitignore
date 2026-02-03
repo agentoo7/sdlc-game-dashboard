@@ -27,6 +27,24 @@ npm-debug.log*
 
 # Testing
 coverage/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.installed.cfg
+*.egg
+.venv/
+venv/
+
+# Docker
+postgres_data/
 
 # Misc
 *.tmp
