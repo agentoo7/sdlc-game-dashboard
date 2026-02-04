@@ -18,7 +18,7 @@ class CompanyCreate(BaseModel):
 
     name: str
     description: Optional[str] = None
-    agents: list[AgentCreate]
+    agents: list[AgentCreate] = []  # Optional - can create company without agents
 
 
 class CompanyResponse(BaseModel):
@@ -36,12 +36,32 @@ class CompanyListItem(BaseModel):
     name: str
     agent_count: int
     last_activity: Optional[datetime] = None
+    status: str  # "active" or "inactive"
 
 
 class CompanyListResponse(BaseModel):
     """Company list response."""
 
     companies: list[CompanyListItem]
+
+
+class AgentCreateRequest(BaseModel):
+    """Request to create a single agent."""
+
+    agent_id: str
+    name: str
+    role: str
+
+
+class AgentResponse(BaseModel):
+    """Response after creating an agent."""
+
+    agent_id: str
+    name: str
+    role: str
+    status: str
+    position: dict
+    role_config: "RoleConfigResponse"
 
 
 class AgentState(BaseModel):
@@ -53,6 +73,7 @@ class AgentState(BaseModel):
     status: str
     position: dict
     current_task: Optional[str] = None
+    role_config: Optional["RoleConfigResponse"] = None
 
 
 class PendingMovement(BaseModel):
@@ -63,6 +84,7 @@ class PendingMovement(BaseModel):
     to_zone: str
     purpose: str
     artifact: Optional[str] = None
+    progress: float = 0.0  # 0.0 to 1.0
 
 
 class RoleConfigResponse(BaseModel):
@@ -82,3 +104,4 @@ class CompanyStateResponse(BaseModel):
     agents: list[AgentState]
     pending_movements: list[PendingMovement]
     role_configs: dict[str, RoleConfigResponse] = {}
+    last_updated: datetime

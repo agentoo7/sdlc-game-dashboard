@@ -1,12 +1,28 @@
 import { Scene } from 'phaser';
-import { ROLE_COLORS, ZONE_POSITIONS } from '@/utils/constants';
+import { ROLE_COLORS, ZONE_POSITIONS, CUSTOM_ROLE_COLORS, POLLING_INTERVAL } from '@/utils/constants';
+import { apiService } from '@/services/ApiService';
+import type { Agent, RoleConfig, CompanyState, PendingMovement } from '@/types';
+
+// Status indicator icons
+const STATUS_ICONS: Record<string, string> = {
+  thinking: '💭',
+  working: '📝',
+  executing: '⚡',
+  error: '❌',
+  walking: '🚶',
+  idle: '',
+};
 
 export class MainScene extends Scene {
   private agents: Map<string, Phaser.GameObjects.Container> = new Map();
+  private statusIndicators: Map<string, Phaser.GameObjects.Text> = new Map();
   private zones: Map<string, Phaser.GameObjects.Rectangle> = new Map();
+  private roleConfigs: Map<string, RoleConfig> = new Map();
   private isDragging = false;
   private dragStartX = 0;
   private dragStartY = 0;
+  private currentCompanyId: string | null = null;
+  private pollingTimer: Phaser.Time.TimerEvent | null = null;
 
   constructor() {
     super({ key: 'MainScene' });
@@ -14,6 +30,11 @@ export class MainScene extends Scene {
 
   create(): void {
     console.log('MainScene: Creating game world');
+
+    // Disable browser context menu on canvas
+    this.game.canvas.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+    });
 
     // Set world bounds for camera
     this.cameras.main.setBounds(-500, -500, 2000, 2000);
@@ -24,11 +45,11 @@ export class MainScene extends Scene {
     // Create office layout
     this.createOfficeLayout();
 
-    // Create placeholder agents for demo
-    this.createPlaceholderAgents();
-
     // Center camera on office
     this.cameras.main.centerOn(400, 400);
+
+    // Listen for company selection events
+    this.game.events.on('selectCompany', this.loadCompany, this);
   }
 
   private setupCameraControls(): void {
@@ -39,9 +60,9 @@ export class MainScene extends Scene {
       this.cameras.main.setZoom(newZoom);
     });
 
-    // Pan with drag
+    // Pan with left-click drag
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-      if (pointer.middleButtonDown() || pointer.rightButtonDown()) {
+      if (pointer.leftButtonDown()) {
         this.isDragging = true;
         this.dragStartX = pointer.x;
         this.dragStartY = pointer.y;
@@ -49,7 +70,7 @@ export class MainScene extends Scene {
     });
 
     this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
-      if (this.isDragging) {
+      if (this.isDragging && pointer.isDown) {
         const dx = pointer.x - this.dragStartX;
         const dy = pointer.y - this.dragStartY;
         this.cameras.main.scrollX -= dx / this.cameras.main.zoom;
@@ -65,7 +86,6 @@ export class MainScene extends Scene {
   }
 
   private createOfficeLayout(): void {
-    // Create floor grid (simple rectangles for now)
     const gridSize = 100;
     const gridColor = 0x334155;
 
@@ -87,12 +107,10 @@ export class MainScene extends Scene {
     Object.entries(ZONE_POSITIONS).forEach(([role, pos]) => {
       const color = ROLE_COLORS[role as keyof typeof ROLE_COLORS] || 0x64748B;
 
-      // Zone rectangle
       const zone = this.add.rectangle(pos.x, pos.y, 180, 120, color, 0.2);
       zone.setStrokeStyle(2, color);
       this.zones.set(role, zone);
 
-      // Zone label
       this.add.text(pos.x, pos.y - 40, role.toUpperCase(), {
         fontSize: '14px',
         color: '#F8FAFC',
@@ -102,39 +120,123 @@ export class MainScene extends Scene {
     });
   }
 
-  private createPlaceholderAgents(): void {
-    // Demo agents - will be replaced with API data
-    const demoAgents = [
-      { id: 'BA-001', role: 'ba', name: 'Alice' },
-      { id: 'Dev-001', role: 'developer', name: 'Bob' },
-      { id: 'Dev-002', role: 'developer', name: 'Charlie' },
-      { id: 'QA-001', role: 'qa', name: 'Diana' },
-      { id: 'PM-001', role: 'pm', name: 'Eve' },
-      { id: 'Arch-001', role: 'architect', name: 'Frank' },
-    ];
+  async loadCompany(companyId: string): Promise<void> {
+    if (companyId === this.currentCompanyId) return;
 
-    demoAgents.forEach((agent, index) => {
-      this.createAgent(agent.id, agent.role, index);
+    console.log(`MainScene: Loading company ${companyId}`);
+    this.currentCompanyId = companyId;
+
+    // Stop previous polling
+    if (this.pollingTimer) {
+      this.pollingTimer.destroy();
+    }
+
+    // Clear existing agents
+    this.clearAgents();
+
+    try {
+      const state = await apiService.getCompanyState(companyId);
+      this.updateFromState(state);
+
+      // Start polling for updates
+      this.pollingTimer = this.time.addEvent({
+        delay: POLLING_INTERVAL,
+        callback: () => this.pollState(),
+        loop: true,
+      });
+
+      console.log(`MainScene: Loaded ${state.agents.length} agents`);
+    } catch (error) {
+      console.error('Failed to load company state:', error);
+    }
+  }
+
+  private async pollState(): Promise<void> {
+    if (!this.currentCompanyId) return;
+
+    try {
+      const state = await apiService.getCompanyState(this.currentCompanyId);
+      this.updateFromState(state);
+    } catch (error) {
+      console.error('Poll failed:', error);
+    }
+  }
+
+  private updateFromState(state: CompanyState): void {
+    // Update role configs
+    this.roleConfigs.clear();
+    Object.entries(state.role_configs).forEach(([roleId, config]) => {
+      this.roleConfigs.set(roleId, config);
+    });
+
+    // Update or create agents
+    const seenAgents = new Set<string>();
+
+    state.agents.forEach((agent, index) => {
+      seenAgents.add(agent.agent_id);
+      const existing = this.agents.get(agent.agent_id);
+
+      if (existing) {
+        this.updateAgent(existing, agent);
+      } else {
+        this.createAgentFromData(agent, index);
+      }
+    });
+
+    // Remove agents that no longer exist
+    this.agents.forEach((container, agentId) => {
+      if (!seenAgents.has(agentId)) {
+        container.destroy();
+        this.agents.delete(agentId);
+        this.statusIndicators.get(agentId)?.destroy();
+        this.statusIndicators.delete(agentId);
+      }
+    });
+
+    // Process pending movements
+    state.pending_movements.forEach((movement) => {
+      this.processMovement(movement);
     });
   }
 
-  private createAgent(agentId: string, role: string, index: number): void {
-    const pos = ZONE_POSITIONS[role as keyof typeof ZONE_POSITIONS] || ZONE_POSITIONS.developer;
-    const color = ROLE_COLORS[role as keyof typeof ROLE_COLORS] || 0x64748B;
+  private clearAgents(): void {
+    this.agents.forEach((container) => container.destroy());
+    this.agents.clear();
+    this.statusIndicators.forEach((indicator) => indicator.destroy());
+    this.statusIndicators.clear();
+  }
+
+  private createAgentFromData(agent: Agent, index: number): void {
+    const roleConfig = agent.role_config || this.roleConfigs.get(agent.role);
+    const color = roleConfig
+      ? parseInt(roleConfig.color.replace('#', ''), 16)
+      : this.getColorForRole(agent.role);
+
+    const zonePos = ZONE_POSITIONS[agent.role as keyof typeof ZONE_POSITIONS] ||
+      ZONE_POSITIONS.developer;
 
     // Offset for multiple agents in same zone
-    const offsetX = (index % 3) * 50 - 50;
-    const offsetY = Math.floor(index / 3) * 40;
+    const sameRoleAgents = Array.from(this.agents.values()).filter(
+      (a) => a.getData('role') === agent.role
+    );
+    const offsetIndex = sameRoleAgents.length;
+    const offsetX = (offsetIndex % 3) * 50 - 50;
+    const offsetY = Math.floor(offsetIndex / 3) * 40;
 
     // Agent container
-    const container = this.add.container(pos.x + offsetX, pos.y + offsetY);
+    const container = this.add.container(zonePos.x + offsetX, zonePos.y + offsetY);
+    container.setData('role', agent.role);
+    container.setData('agentId', agent.agent_id);
+    container.setData('status', agent.status);
+    container.setData('homeX', zonePos.x + offsetX);
+    container.setData('homeY', zonePos.y + offsetY);
 
-    // Agent body (circle placeholder - will be sprite later)
+    // Agent body
     const body = this.add.circle(0, 0, 20, color);
     body.setStrokeStyle(2, 0xFFFFFF);
 
     // Agent label
-    const label = this.add.text(0, -35, agentId, {
+    const label = this.add.text(0, -35, agent.agent_id, {
       fontSize: '11px',
       color: '#F8FAFC',
       fontFamily: 'JetBrains Mono',
@@ -142,8 +244,8 @@ export class MainScene extends Scene {
       padding: { x: 4, y: 2 },
     }).setOrigin(0.5);
 
-    // Role letter inside circle
-    const letter = this.add.text(0, 0, role.charAt(0).toUpperCase(), {
+    // Role letter
+    const letter = this.add.text(0, 0, agent.role.charAt(0).toUpperCase(), {
       fontSize: '16px',
       color: '#FFFFFF',
       fontFamily: 'Inter',
@@ -155,26 +257,191 @@ export class MainScene extends Scene {
     // Make interactive
     body.setInteractive({ useHandCursor: true });
     body.on('pointerdown', () => {
-      console.log(`Clicked agent: ${agentId}`);
       this.highlightAgent(container);
     });
 
-    this.agents.set(agentId, container);
+    this.agents.set(agent.agent_id, container);
+
+    // Add idle animation
+    this.addIdleAnimation(container);
+
+    // Add status indicator
+    this.updateStatusIndicator(agent.agent_id, agent.status);
+  }
+
+  private updateAgent(container: Phaser.GameObjects.Container, agent: Agent): void {
+    const prevStatus = container.getData('status');
+
+    if (prevStatus !== agent.status) {
+      container.setData('status', agent.status);
+      this.updateStatusIndicator(agent.agent_id, agent.status);
+
+      // Update animation based on status
+      if (agent.status === 'idle') {
+        this.addIdleAnimation(container);
+      }
+    }
+  }
+
+  private addIdleAnimation(container: Phaser.GameObjects.Container): void {
+    // Breathing animation - subtle scale pulse
+    this.tweens.add({
+      targets: container,
+      scaleX: 1.02,
+      scaleY: 1.02,
+      duration: 1000,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    });
+  }
+
+  private updateStatusIndicator(agentId: string, status: string): void {
+    const container = this.agents.get(agentId);
+    if (!container) return;
+
+    // Remove existing indicator
+    const existing = this.statusIndicators.get(agentId);
+    if (existing) {
+      existing.destroy();
+      this.statusIndicators.delete(agentId);
+    }
+
+    const icon = STATUS_ICONS[status] || '';
+    if (!icon) return;
+
+    // Create status indicator
+    const indicator = this.add.text(container.x, container.y - 50, icon, {
+      fontSize: '24px',
+    }).setOrigin(0.5);
+
+    // Add floating animation
+    this.tweens.add({
+      targets: indicator,
+      y: indicator.y - 5,
+      duration: 800,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    });
+
+    // Scale-in animation
+    indicator.setScale(0);
+    this.tweens.add({
+      targets: indicator,
+      scaleX: 1,
+      scaleY: 1,
+      duration: 300,
+      ease: 'Back.easeOut',
+    });
+
+    this.statusIndicators.set(agentId, indicator);
+  }
+
+  private processMovement(movement: PendingMovement): void {
+    const container = this.agents.get(movement.agent_id);
+    if (!container) return;
+
+    // Skip if already moving
+    if (container.getData('isMoving')) return;
+
+    const toZonePos = ZONE_POSITIONS[movement.to_zone as keyof typeof ZONE_POSITIONS];
+    if (!toZonePos) return;
+
+    container.setData('isMoving', true);
+
+    // Walk to destination
+    this.tweens.add({
+      targets: container,
+      x: toZonePos.x,
+      y: toZonePos.y,
+      duration: 1500,
+      ease: 'Linear',
+      onComplete: () => {
+        container.setData('isMoving', false);
+
+        // If purpose is handoff, show artifact animation
+        if (movement.purpose === 'handoff' && movement.artifact) {
+          this.showHandoffAnimation(container, movement.artifact);
+        }
+      },
+    });
+
+    // Update status indicator position
+    const indicator = this.statusIndicators.get(movement.agent_id);
+    if (indicator) {
+      this.tweens.add({
+        targets: indicator,
+        x: toZonePos.x,
+        y: toZonePos.y - 50,
+        duration: 1500,
+        ease: 'Linear',
+      });
+    }
+  }
+
+  private showHandoffAnimation(container: Phaser.GameObjects.Container, artifact: string): void {
+    // Create artifact icon
+    const artifactIcon = this.add.text(container.x, container.y - 30, '📄', {
+      fontSize: '20px',
+    }).setOrigin(0.5);
+
+    // Arc motion animation
+    this.tweens.add({
+      targets: artifactIcon,
+      x: container.x + 30,
+      y: container.y - 50,
+      duration: 250,
+      ease: 'Quad.easeOut',
+      onComplete: () => {
+        this.tweens.add({
+          targets: artifactIcon,
+          x: container.x + 50,
+          y: container.y,
+          duration: 250,
+          ease: 'Quad.easeIn',
+          onComplete: () => {
+            artifactIcon.destroy();
+          },
+        });
+      },
+    });
+  }
+
+  private getColorForRole(role: string): number {
+    if (role in ROLE_COLORS) {
+      return ROLE_COLORS[role as keyof typeof ROLE_COLORS];
+    }
+
+    const customRoleIndex = Array.from(this.roleConfigs.keys())
+      .filter((r) => !(r in ROLE_COLORS))
+      .indexOf(role);
+
+    if (customRoleIndex >= 0 && customRoleIndex < CUSTOM_ROLE_COLORS.length) {
+      return CUSTOM_ROLE_COLORS[customRoleIndex];
+    }
+
+    return 0x64748B;
   }
 
   private highlightAgent(agent: Phaser.GameObjects.Container): void {
-    // Remove previous highlights
     this.agents.forEach((a) => {
       const body = a.list[0] as Phaser.GameObjects.Arc;
       body.setStrokeStyle(2, 0xFFFFFF);
     });
 
-    // Highlight selected agent
     const body = agent.list[0] as Phaser.GameObjects.Arc;
-    body.setStrokeStyle(3, 0xFBBF24); // Amber highlight
+    body.setStrokeStyle(3, 0xFBBF24);
   }
 
   update(): void {
-    // Will be used for animations and state updates
+    // Update indicator positions to follow agents
+    this.statusIndicators.forEach((indicator, agentId) => {
+      const container = this.agents.get(agentId);
+      if (container && !this.tweens.isTweening(indicator)) {
+        indicator.x = container.x;
+        indicator.y = container.y - 50;
+      }
+    });
   }
 }
