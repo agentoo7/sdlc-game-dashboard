@@ -47,8 +47,25 @@ class ApiService {
       const data = await response.json()
 
       if (!response.ok) {
+        // Handle array of validation errors from API
+        let errorMessage = 'Request failed'
+        if (data.detail) {
+          if (Array.isArray(data.detail)) {
+            // Format validation errors: "field: message"
+            errorMessage = data.detail
+              .map((err: { loc?: string[]; msg?: string }) => {
+                const field = err.loc?.slice(-1)[0] || 'unknown'
+                return `${field}: ${err.msg || 'invalid'}`
+              })
+              .join(', ')
+          } else {
+            errorMessage = String(data.detail)
+          }
+        } else if (data.message) {
+          errorMessage = String(data.message)
+        }
         return {
-          error: data.detail || data.message || 'Request failed',
+          error: errorMessage,
           status: response.status,
         }
       }
@@ -102,9 +119,14 @@ class ApiService {
       return { data: [], status: 200 }
     }
     // Agents are fetched from company state endpoint
-    const response = await this.request<{ agents: Agent[] }>(`/companies/${companyId}/state`)
+    const response = await this.request<{ agents: (Agent & { agent_id?: string })[] }>(`/companies/${companyId}/state`)
     if (response.data) {
-      return { data: response.data.agents || [], status: response.status }
+      // Map agent_id to id for frontend compatibility
+      const agents = (response.data.agents || []).map(agent => ({
+        ...agent,
+        id: agent.id || agent.agent_id || '',
+      }))
+      return { data: agents, status: response.status }
     }
     return { data: [], status: response.status, error: response.error }
   }

@@ -19,7 +19,7 @@ function EventSender({ company, agents, onEventSent, onEventUpdate }: EventSende
 
   // Form state
   const [selectedAgentId, setSelectedAgentId] = useState('')
-  const [selectedEventType, setSelectedEventType] = useState<EventType>('status_update')
+  const [selectedEventType, setSelectedEventType] = useState<EventType>('THINKING')
   const [toAgentId, setToAgentId] = useState('')
   const [payloadJson, setPayloadJson] = useState('')
   const [jsonError, setJsonError] = useState<string | null>(null)
@@ -120,6 +120,7 @@ function EventSender({ company, agents, onEventSent, onEventUpdate }: EventSende
     onEventSent(sentEvent)
 
     const response = await api.sendEvent({
+      company_id: company.id,
       event_type: selectedEventType,
       agent_id: selectedAgentId,
       data: payload,

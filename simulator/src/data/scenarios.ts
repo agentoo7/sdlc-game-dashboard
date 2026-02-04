@@ -30,32 +30,32 @@ export const SCENARIOS: Scenario[] = [
     events: [
       {
         agentRole: 'ba',
-        eventType: 'requirement_created',
-        payload: { requirement_id: 'REQ-001', title: 'User Login Feature', description: 'Implement secure user authentication' },
+        eventType: 'THINKING',
+        payload: { thought: 'Analyzing user login requirements', context: 'requirement analysis' },
         delayMs: 0,
       },
       {
         agentRole: 'ba',
-        eventType: 'user_story_created',
-        payload: { story_id: 'US-001', title: 'As a user, I want to log in securely', points: 5 },
+        eventType: 'TASK_COMPLETE',
+        payload: { task_id: 'REQ-001', result: 'success', output: 'User story created: As a user, I want to log in securely' },
         delayMs: 5000,
       },
       {
         agentRole: 'developer',
-        eventType: 'code_started',
-        payload: { task_id: 'TASK-001', branch: 'feature/user-login' },
+        eventType: 'WORKING',
+        payload: { task: 'Implementing login feature', progress: 25 },
         delayMs: 8000,
       },
       {
         agentRole: 'developer',
-        eventType: 'code_completed',
-        payload: { task_id: 'TASK-001', files_changed: 5, lines_added: 150 },
+        eventType: 'TASK_COMPLETE',
+        payload: { task_id: 'TASK-001', result: 'success', output: 'Login feature implemented - 5 files, 150 lines' },
         delayMs: 20000,
       },
       {
         agentRole: 'developer',
-        eventType: 'pull_request_created',
-        payload: { pr_id: 'PR-42', title: 'Add user login feature', reviewers: ['senior-dev'] },
+        eventType: 'REVIEW_REQUEST',
+        payload: { reviewer: '', item_type: 'code', item_id: 'PR-42', description: 'Add user login feature' },
         delayMs: 25000,
       },
     ],
@@ -70,30 +70,30 @@ export const SCENARIOS: Scenario[] = [
     requiredRoles: ['customer', 'ba', 'pm', 'architect', 'developer', 'qa'],
     events: [
       // Customer request
-      { agentRole: 'customer', eventType: 'customer_request', payload: { request: 'Add payment integration', priority: 'high' }, delayMs: 0 },
+      { agentRole: 'customer', eventType: 'WORK_REQUEST', payload: { task_id: 'REQ-002', assignee: 'ba', description: 'Add payment integration', priority: 'high' }, delayMs: 0 },
       // BA analysis
-      { agentRole: 'ba', eventType: 'requirement_created', payload: { requirement_id: 'REQ-002', title: 'Payment Gateway Integration' }, delayMs: 5000 },
-      { agentRole: 'ba', eventType: 'user_story_created', payload: { story_id: 'US-002', title: 'Process payments', points: 8 }, delayMs: 10000 },
+      { agentRole: 'ba', eventType: 'THINKING', payload: { thought: 'Analyzing payment gateway requirements', context: 'requirement analysis' }, delayMs: 5000 },
+      { agentRole: 'ba', eventType: 'TASK_COMPLETE', payload: { task_id: 'US-002', result: 'success', output: 'User story: Process payments (8 points)' }, delayMs: 10000 },
       // PM planning
-      { agentRole: 'pm', eventType: 'sprint_started', payload: { sprint_id: 'Sprint-5', goal: 'Payment feature', duration_days: 14 }, delayMs: 15000 },
-      { agentRole: 'pm', eventType: 'task_assigned', payload: { task_id: 'TASK-010', assignee: 'architect', description: 'Design payment architecture' }, delayMs: 20000 },
+      { agentRole: 'pm', eventType: 'WORKING', payload: { task: 'Starting Sprint-5', progress: 10 }, delayMs: 15000 },
+      { agentRole: 'pm', eventType: 'WORK_REQUEST', payload: { task_id: 'TASK-010', assignee: 'architect', description: 'Design payment architecture', priority: 'high' }, delayMs: 20000 },
       // Architect design
-      { agentRole: 'architect', eventType: 'design_created', payload: { design_id: 'ARCH-002', type: 'component', title: 'Payment Service Architecture' }, delayMs: 30000 },
-      { agentRole: 'architect', eventType: 'technical_decision', payload: { decision: 'Use Stripe API', rationale: 'Best documentation and support' }, delayMs: 40000 },
-      { agentRole: 'architect', eventType: 'design_approved', payload: { design_id: 'ARCH-002', approver: 'Tech Lead' }, delayMs: 50000 },
+      { agentRole: 'architect', eventType: 'THINKING', payload: { thought: 'Evaluating payment service options', context: 'architecture design' }, delayMs: 30000 },
+      { agentRole: 'architect', eventType: 'TASK_COMPLETE', payload: { task_id: 'ARCH-002', result: 'success', output: 'Payment Service Architecture designed' }, delayMs: 40000 },
+      { agentRole: 'architect', eventType: 'FEEDBACK', payload: { to_agent: 'pm', feedback_type: 'positive', content: 'Design approved - using Stripe API' }, delayMs: 50000 },
       // Developer implementation
-      { agentRole: 'developer', eventType: 'code_started', payload: { task_id: 'TASK-011', branch: 'feature/payment' }, delayMs: 55000 },
-      { agentRole: 'developer', eventType: 'code_committed', payload: { commit_hash: 'abc123', message: 'feat: add payment service' }, delayMs: 70000 },
-      { agentRole: 'developer', eventType: 'code_completed', payload: { task_id: 'TASK-011', files_changed: 12, lines_added: 450 }, delayMs: 80000 },
-      { agentRole: 'developer', eventType: 'pull_request_created', payload: { pr_id: 'PR-55', title: 'Payment integration' }, delayMs: 85000 },
+      { agentRole: 'developer', eventType: 'WORKING', payload: { task: 'Implementing payment service', progress: 25 }, delayMs: 55000 },
+      { agentRole: 'developer', eventType: 'EXECUTING', payload: { action: 'Running build', command: 'npm run build' }, delayMs: 70000 },
+      { agentRole: 'developer', eventType: 'TASK_COMPLETE', payload: { task_id: 'TASK-011', result: 'success', output: 'Payment integration complete - 12 files, 450 lines' }, delayMs: 80000 },
+      { agentRole: 'developer', eventType: 'REVIEW_REQUEST', payload: { reviewer: 'qa', item_type: 'code', item_id: 'PR-55', description: 'Payment integration' }, delayMs: 85000 },
       // QA testing
-      { agentRole: 'qa', eventType: 'test_plan_created', payload: { plan_id: 'TP-002', coverage: ['unit', 'integration', 'e2e'] }, delayMs: 90000 },
-      { agentRole: 'qa', eventType: 'test_started', payload: { test_suite: 'payment-tests', total_tests: 15 }, delayMs: 95000 },
-      { agentRole: 'qa', eventType: 'test_passed', payload: { test_name: 'payment_success', duration_ms: 250 }, delayMs: 105000 },
-      { agentRole: 'qa', eventType: 'test_passed', payload: { test_name: 'payment_refund', duration_ms: 180 }, delayMs: 110000 },
+      { agentRole: 'qa', eventType: 'THINKING', payload: { thought: 'Creating test plan for payment feature', context: 'test planning' }, delayMs: 90000 },
+      { agentRole: 'qa', eventType: 'EXECUTING', payload: { action: 'Running payment tests', command: 'npm test payment' }, delayMs: 95000 },
+      { agentRole: 'qa', eventType: 'TASK_COMPLETE', payload: { task_id: 'TEST-001', result: 'success', output: 'All payment tests passed' }, delayMs: 105000 },
+      { agentRole: 'qa', eventType: 'FEEDBACK', payload: { to_agent: 'developer', feedback_type: 'positive', content: 'Payment refund test passed - good work!' }, delayMs: 110000 },
       // Completion
-      { agentRole: 'pm', eventType: 'milestone_reached', payload: { milestone: 'Payment MVP', achieved_at: new Date().toISOString() }, delayMs: 115000 },
-      { agentRole: 'customer', eventType: 'customer_approval', payload: { approved_item: 'Payment feature', comments: 'Great work!' }, delayMs: 120000 },
+      { agentRole: 'pm', eventType: 'TASK_COMPLETE', payload: { task_id: 'MILESTONE-1', result: 'success', output: 'Payment MVP milestone achieved' }, delayMs: 115000 },
+      { agentRole: 'customer', eventType: 'FEEDBACK', payload: { to_agent: 'pm', feedback_type: 'positive', content: 'Payment feature approved - Great work!' }, delayMs: 120000 },
     ],
   },
 
@@ -105,15 +105,15 @@ export const SCENARIOS: Scenario[] = [
     durationEstimate: '1 minute',
     requiredRoles: ['ba', 'developer', 'qa'],
     events: [
-      { agentRole: 'ba', eventType: 'requirement_clarification', payload: { question: 'What validation rules?', context: 'Email field' }, delayMs: 0 },
-      { agentRole: 'ba', eventType: 'communication', payload: { to_agent: 'developer', message_type: 'info', subject: 'Spec update', content: 'Added validation rules' }, delayMs: 5000 },
-      { agentRole: 'developer', eventType: 'code_started', payload: { task_id: 'TASK-020', branch: 'feature/validation' }, delayMs: 10000 },
-      { agentRole: 'developer', eventType: 'code_review_requested', payload: { pr_id: 'PR-60', reviewer: 'qa', urgency: 'normal' }, delayMs: 25000 },
-      { agentRole: 'qa', eventType: 'test_started', payload: { test_suite: 'validation-tests', total_tests: 8 }, delayMs: 30000 },
-      { agentRole: 'qa', eventType: 'bug_reported', payload: { bug_id: 'BUG-005', severity: 'medium', title: 'Email regex too strict' }, delayMs: 40000 },
-      { agentRole: 'developer', eventType: 'bug_fixed', payload: { bug_id: 'BUG-005', fix_description: 'Updated regex pattern' }, delayMs: 50000 },
-      { agentRole: 'qa', eventType: 'bug_verified', payload: { bug_id: 'BUG-005', verified_by: 'QA' }, delayMs: 55000 },
-      { agentRole: 'qa', eventType: 'test_passed', payload: { test_name: 'email_validation', duration_ms: 50 }, delayMs: 60000 },
+      { agentRole: 'ba', eventType: 'MESSAGE_SEND', payload: { to_agent: 'developer', subject: 'Validation Requirements', content: 'What validation rules should we use for email fields?' }, delayMs: 0 },
+      { agentRole: 'ba', eventType: 'MESSAGE_SEND', payload: { to_agent: 'developer', subject: 'Spec Update', content: 'Added validation rules to the specification' }, delayMs: 5000 },
+      { agentRole: 'developer', eventType: 'WORKING', payload: { task: 'Implementing validation feature', progress: 30 }, delayMs: 10000 },
+      { agentRole: 'developer', eventType: 'REVIEW_REQUEST', payload: { reviewer: 'qa', item_type: 'code', item_id: 'PR-60', description: 'Email validation feature' }, delayMs: 25000 },
+      { agentRole: 'qa', eventType: 'EXECUTING', payload: { action: 'Running validation tests', command: 'npm test validation' }, delayMs: 30000 },
+      { agentRole: 'qa', eventType: 'ERROR', payload: { error_type: 'BugFound', message: 'Email regex too strict', details: 'Valid emails being rejected' }, delayMs: 40000 },
+      { agentRole: 'developer', eventType: 'TASK_COMPLETE', payload: { task_id: 'BUG-005', result: 'success', output: 'Fixed: Updated regex pattern' }, delayMs: 50000 },
+      { agentRole: 'qa', eventType: 'FEEDBACK', payload: { to_agent: 'developer', feedback_type: 'positive', content: 'Bug verified fixed' }, delayMs: 55000 },
+      { agentRole: 'qa', eventType: 'TASK_COMPLETE', payload: { task_id: 'TEST-VAL', result: 'success', output: 'Email validation test passed' }, delayMs: 60000 },
     ],
   },
 
@@ -125,21 +125,21 @@ export const SCENARIOS: Scenario[] = [
     durationEstimate: '15 seconds',
     requiredRoles: ['developer'],
     events: [
-      { agentRole: 'developer', eventType: 'code_started', payload: { task_id: 'STRESS-1' }, delayMs: 0 },
-      { agentRole: 'developer', eventType: 'code_committed', payload: { commit_hash: 'a1', message: 'commit 1' }, delayMs: 500 },
-      { agentRole: 'developer', eventType: 'code_committed', payload: { commit_hash: 'a2', message: 'commit 2' }, delayMs: 1000 },
-      { agentRole: 'developer', eventType: 'code_committed', payload: { commit_hash: 'a3', message: 'commit 3' }, delayMs: 1500 },
-      { agentRole: 'developer', eventType: 'build_started', payload: { build_id: 'B1', trigger: 'push' }, delayMs: 2000 },
-      { agentRole: 'developer', eventType: 'build_completed', payload: { build_id: 'B1', duration_seconds: 30 }, delayMs: 2500 },
-      { agentRole: 'developer', eventType: 'code_committed', payload: { commit_hash: 'a4', message: 'commit 4' }, delayMs: 3000 },
-      { agentRole: 'developer', eventType: 'code_committed', payload: { commit_hash: 'a5', message: 'commit 5' }, delayMs: 3500 },
-      { agentRole: 'developer', eventType: 'build_started', payload: { build_id: 'B2', trigger: 'push' }, delayMs: 4000 },
-      { agentRole: 'developer', eventType: 'build_failed', payload: { build_id: 'B2', error: 'Test failure' }, delayMs: 4500 },
-      { agentRole: 'developer', eventType: 'code_committed', payload: { commit_hash: 'a6', message: 'fix tests' }, delayMs: 5000 },
-      { agentRole: 'developer', eventType: 'build_started', payload: { build_id: 'B3', trigger: 'push' }, delayMs: 5500 },
-      { agentRole: 'developer', eventType: 'build_completed', payload: { build_id: 'B3', duration_seconds: 25 }, delayMs: 6000 },
-      { agentRole: 'developer', eventType: 'pull_request_created', payload: { pr_id: 'PR-100' }, delayMs: 6500 },
-      { agentRole: 'developer', eventType: 'pull_request_merged', payload: { pr_id: 'PR-100', merged_by: 'auto' }, delayMs: 7000 },
+      { agentRole: 'developer', eventType: 'WORKING', payload: { task: 'Starting stress test', progress: 0 }, delayMs: 0 },
+      { agentRole: 'developer', eventType: 'TASK_COMPLETE', payload: { task_id: 'COMMIT-1', result: 'success', output: 'commit 1' }, delayMs: 500 },
+      { agentRole: 'developer', eventType: 'TASK_COMPLETE', payload: { task_id: 'COMMIT-2', result: 'success', output: 'commit 2' }, delayMs: 1000 },
+      { agentRole: 'developer', eventType: 'TASK_COMPLETE', payload: { task_id: 'COMMIT-3', result: 'success', output: 'commit 3' }, delayMs: 1500 },
+      { agentRole: 'developer', eventType: 'EXECUTING', payload: { action: 'Build B1', command: 'npm run build' }, delayMs: 2000 },
+      { agentRole: 'developer', eventType: 'TASK_COMPLETE', payload: { task_id: 'BUILD-1', result: 'success', output: 'Build completed in 30s' }, delayMs: 2500 },
+      { agentRole: 'developer', eventType: 'TASK_COMPLETE', payload: { task_id: 'COMMIT-4', result: 'success', output: 'commit 4' }, delayMs: 3000 },
+      { agentRole: 'developer', eventType: 'TASK_COMPLETE', payload: { task_id: 'COMMIT-5', result: 'success', output: 'commit 5' }, delayMs: 3500 },
+      { agentRole: 'developer', eventType: 'EXECUTING', payload: { action: 'Build B2', command: 'npm run build' }, delayMs: 4000 },
+      { agentRole: 'developer', eventType: 'ERROR', payload: { error_type: 'BuildFailed', message: 'Test failure', details: 'Build B2 failed' }, delayMs: 4500 },
+      { agentRole: 'developer', eventType: 'TASK_COMPLETE', payload: { task_id: 'COMMIT-6', result: 'success', output: 'fix tests' }, delayMs: 5000 },
+      { agentRole: 'developer', eventType: 'EXECUTING', payload: { action: 'Build B3', command: 'npm run build' }, delayMs: 5500 },
+      { agentRole: 'developer', eventType: 'TASK_COMPLETE', payload: { task_id: 'BUILD-3', result: 'success', output: 'Build completed in 25s' }, delayMs: 6000 },
+      { agentRole: 'developer', eventType: 'REVIEW_REQUEST', payload: { reviewer: '', item_type: 'code', item_id: 'PR-100', description: 'Stress test PR' }, delayMs: 6500 },
+      { agentRole: 'developer', eventType: 'TASK_COMPLETE', payload: { task_id: 'PR-100', result: 'success', output: 'PR merged' }, delayMs: 7000 },
     ],
   },
 
@@ -147,39 +147,38 @@ export const SCENARIOS: Scenario[] = [
   {
     id: 'all-events',
     name: 'All Event Types',
-    description: 'Demonstrates each event category with representative events',
+    description: 'Demonstrates each event type available in the API',
     durationEstimate: '1.5 minutes',
     requiredRoles: ['customer', 'ba', 'pm', 'architect', 'developer', 'qa'],
     events: [
-      // Customer events
-      { agentRole: 'customer', eventType: 'customer_request', payload: { request: 'New feature' }, delayMs: 0 },
-      { agentRole: 'customer', eventType: 'customer_feedback', payload: { feedback: 'Looking good', sentiment: 'positive' }, delayMs: 5000 },
-      // BA events
-      { agentRole: 'ba', eventType: 'requirement_created', payload: { requirement_id: 'REQ-DEMO' }, delayMs: 10000 },
-      { agentRole: 'ba', eventType: 'user_story_created', payload: { story_id: 'US-DEMO', points: 3 }, delayMs: 15000 },
-      { agentRole: 'ba', eventType: 'acceptance_criteria_defined', payload: { story_id: 'US-DEMO', criteria: ['Given...', 'When...'] }, delayMs: 20000 },
-      // PM events
-      { agentRole: 'pm', eventType: 'sprint_started', payload: { sprint_id: 'Sprint-DEMO' }, delayMs: 25000 },
-      { agentRole: 'pm', eventType: 'task_assigned', payload: { task_id: 'TASK-DEMO', assignee: 'developer' }, delayMs: 30000 },
-      { agentRole: 'pm', eventType: 'blocker_reported', payload: { blocker: 'API dependency', severity: 'high' }, delayMs: 35000 },
-      { agentRole: 'pm', eventType: 'blocker_resolved', payload: { blocker: 'API dependency', resolution: 'Mocked' }, delayMs: 40000 },
-      // Architect events
-      { agentRole: 'architect', eventType: 'design_created', payload: { design_id: 'ARCH-DEMO' }, delayMs: 45000 },
-      { agentRole: 'architect', eventType: 'technical_decision', payload: { decision: 'Use React', rationale: 'Team expertise' }, delayMs: 50000 },
-      { agentRole: 'architect', eventType: 'architecture_review', payload: { component: 'Frontend', findings: 'Good structure' }, delayMs: 55000 },
-      // Developer events
-      { agentRole: 'developer', eventType: 'code_started', payload: { task_id: 'TASK-DEMO' }, delayMs: 60000 },
-      { agentRole: 'developer', eventType: 'code_committed', payload: { commit_hash: 'demo123', message: 'feat: demo' }, delayMs: 65000 },
-      { agentRole: 'developer', eventType: 'build_started', payload: { build_id: 'BUILD-DEMO' }, delayMs: 70000 },
-      { agentRole: 'developer', eventType: 'build_completed', payload: { build_id: 'BUILD-DEMO', duration_seconds: 60 }, delayMs: 75000 },
-      // QA events
-      { agentRole: 'qa', eventType: 'test_plan_created', payload: { plan_id: 'TP-DEMO' }, delayMs: 80000 },
-      { agentRole: 'qa', eventType: 'test_started', payload: { test_suite: 'demo-tests', total_tests: 10 }, delayMs: 85000 },
-      { agentRole: 'qa', eventType: 'test_passed', payload: { test_name: 'demo_test_1' }, delayMs: 88000 },
-      { agentRole: 'qa', eventType: 'test_failed', payload: { test_name: 'demo_test_2', error: 'Assertion failed' }, delayMs: 90000 },
-      { agentRole: 'qa', eventType: 'bug_reported', payload: { bug_id: 'BUG-DEMO', severity: 'low' }, delayMs: 93000 },
-      // General
-      { agentRole: 'pm', eventType: 'status_update', payload: { message: 'Demo complete', progress: 100 }, delayMs: 95000 },
+      // THINKING
+      { agentRole: 'ba', eventType: 'THINKING', payload: { thought: 'Analyzing requirements', context: 'planning' }, delayMs: 0 },
+      // WORKING
+      { agentRole: 'developer', eventType: 'WORKING', payload: { task: 'Implementing feature', progress: 50 }, delayMs: 5000 },
+      // EXECUTING
+      { agentRole: 'qa', eventType: 'EXECUTING', payload: { action: 'Running tests', command: 'npm test' }, delayMs: 10000 },
+      // IDLE
+      { agentRole: 'pm', eventType: 'IDLE', payload: { reason: 'Waiting for dependencies', duration_seconds: 10 }, delayMs: 15000 },
+      // ERROR
+      { agentRole: 'developer', eventType: 'ERROR', payload: { error_type: 'CompileError', message: 'Syntax error', details: 'Missing semicolon' }, delayMs: 20000 },
+      // TASK_COMPLETE
+      { agentRole: 'developer', eventType: 'TASK_COMPLETE', payload: { task_id: 'FIX-001', result: 'success', output: 'Error fixed' }, delayMs: 25000 },
+      // MESSAGE_SEND
+      { agentRole: 'ba', eventType: 'MESSAGE_SEND', payload: { to_agent: 'developer', subject: 'Update', content: 'New requirements ready' }, delayMs: 30000 },
+      // MESSAGE_RECEIVE
+      { agentRole: 'developer', eventType: 'MESSAGE_RECEIVE', payload: { from_agent: 'ba', subject: 'Update', content: 'Acknowledged' }, delayMs: 35000 },
+      // WORK_REQUEST
+      { agentRole: 'pm', eventType: 'WORK_REQUEST', payload: { task_id: 'TASK-DEMO', assignee: 'developer', description: 'Implement demo feature', priority: 'medium' }, delayMs: 40000 },
+      // WORK_COMPLETE
+      { agentRole: 'developer', eventType: 'WORK_COMPLETE', payload: { task_id: 'TASK-DEMO', deliverable: 'Feature implemented', notes: 'Ready for review' }, delayMs: 50000 },
+      // REVIEW_REQUEST
+      { agentRole: 'developer', eventType: 'REVIEW_REQUEST', payload: { reviewer: 'qa', item_type: 'code', item_id: 'PR-DEMO', description: 'Demo feature PR' }, delayMs: 55000 },
+      // FEEDBACK
+      { agentRole: 'qa', eventType: 'FEEDBACK', payload: { to_agent: 'developer', feedback_type: 'positive', content: 'Great implementation!' }, delayMs: 60000 },
+      // CUSTOM_EVENT
+      { agentRole: 'architect', eventType: 'CUSTOM_EVENT', payload: { event_name: 'architecture_decision', data: { decision: 'Use microservices', rationale: 'Better scalability' } }, delayMs: 65000 },
+      // Final status
+      { agentRole: 'customer', eventType: 'FEEDBACK', payload: { to_agent: 'pm', feedback_type: 'positive', content: 'Demo complete - all event types shown!' }, delayMs: 70000 },
     ],
   },
 ]

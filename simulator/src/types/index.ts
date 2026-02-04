@@ -85,61 +85,25 @@ export const getRoleDisplayName = (role: string): string => {
   return found?.label || role
 }
 
-// Event types - all 43 event types from the SDLC Game
+// Event types - matching the API enum
 export type EventType =
-  // Customer events
-  | 'customer_request'
-  | 'customer_feedback'
-  | 'customer_approval'
-  | 'customer_rejection'
-  // BA events
-  | 'requirement_created'
-  | 'requirement_updated'
-  | 'requirement_clarification'
-  | 'user_story_created'
-  | 'acceptance_criteria_defined'
-  // PM events
-  | 'sprint_started'
-  | 'sprint_completed'
-  | 'task_assigned'
-  | 'task_updated'
-  | 'blocker_reported'
-  | 'blocker_resolved'
-  | 'milestone_reached'
-  // Architect events
-  | 'design_created'
-  | 'design_updated'
-  | 'design_approved'
-  | 'technical_decision'
-  | 'architecture_review'
-  // Developer events
-  | 'code_started'
-  | 'code_completed'
-  | 'code_committed'
-  | 'pull_request_created'
-  | 'pull_request_merged'
-  | 'code_review_requested'
-  | 'code_review_completed'
-  | 'build_started'
-  | 'build_completed'
-  | 'build_failed'
-  // QA events
-  | 'test_plan_created'
-  | 'test_started'
-  | 'test_passed'
-  | 'test_failed'
-  | 'bug_reported'
-  | 'bug_fixed'
-  | 'bug_verified'
-  | 'regression_found'
-  // General events
-  | 'status_update'
-  | 'communication'
-  | 'document_created'
-  | 'meeting_scheduled'
+  | 'THINKING'
+  | 'WORKING'
+  | 'EXECUTING'
+  | 'IDLE'
+  | 'ERROR'
+  | 'TASK_COMPLETE'
+  | 'MESSAGE_SEND'
+  | 'MESSAGE_RECEIVE'
+  | 'WORK_REQUEST'
+  | 'WORK_COMPLETE'
+  | 'REVIEW_REQUEST'
+  | 'FEEDBACK'
+  | 'CUSTOM_EVENT'
 
 // Event payload interface
 export interface EventPayload {
+  company_id: string
   event_type: EventType
   agent_id: string
   timestamp?: string
@@ -188,63 +152,20 @@ export const ROLE_NAMES: Record<AgentRole, string> = {
   qa: 'QA Engineer',
 }
 
-// Event type categories
+// Event type categories - organized by agent behavior
 export const EVENT_CATEGORIES: Record<string, EventType[]> = {
-  Customer: ['customer_request', 'customer_feedback', 'customer_approval', 'customer_rejection'],
-  'Business Analyst': [
-    'requirement_created',
-    'requirement_updated',
-    'requirement_clarification',
-    'user_story_created',
-    'acceptance_criteria_defined',
-  ],
-  'Project Manager': [
-    'sprint_started',
-    'sprint_completed',
-    'task_assigned',
-    'task_updated',
-    'blocker_reported',
-    'blocker_resolved',
-    'milestone_reached',
-  ],
-  Architect: [
-    'design_created',
-    'design_updated',
-    'design_approved',
-    'technical_decision',
-    'architecture_review',
-  ],
-  Developer: [
-    'code_started',
-    'code_completed',
-    'code_committed',
-    'pull_request_created',
-    'pull_request_merged',
-    'code_review_requested',
-    'code_review_completed',
-    'build_started',
-    'build_completed',
-    'build_failed',
-  ],
-  QA: [
-    'test_plan_created',
-    'test_started',
-    'test_passed',
-    'test_failed',
-    'bug_reported',
-    'bug_fixed',
-    'bug_verified',
-    'regression_found',
-  ],
-  General: ['status_update', 'communication', 'document_created', 'meeting_scheduled'],
+  'Status Updates': ['THINKING', 'WORKING', 'EXECUTING', 'IDLE', 'ERROR'],
+  'Task Management': ['TASK_COMPLETE', 'WORK_REQUEST', 'WORK_COMPLETE'],
+  'Communication': ['MESSAGE_SEND', 'MESSAGE_RECEIVE', 'REVIEW_REQUEST', 'FEEDBACK'],
+  'Custom': ['CUSTOM_EVENT'],
 }
 
 // Communication event types (show "To Agent" dropdown)
 export const COMMUNICATION_EVENTS: EventType[] = [
-  'communication',
-  'task_assigned',
-  'code_review_requested',
-  'code_review_completed',
+  'MESSAGE_SEND',
+  'WORK_REQUEST',
+  'REVIEW_REQUEST',
+  'FEEDBACK',
 ]
 
 // Check if event type is a communication event
@@ -254,56 +175,23 @@ export const isCommunicationEvent = (eventType: EventType): boolean => {
 
 // Payload templates for each event type
 export const EVENT_PAYLOAD_TEMPLATES: Record<EventType, Record<string, unknown>> = {
-  // Customer events
-  customer_request: { request: "New feature request", priority: "high", details: "..." },
-  customer_feedback: { feedback: "Great work!", sentiment: "positive" },
-  customer_approval: { approved_item: "Sprint deliverable", comments: "Looks good" },
-  customer_rejection: { rejected_item: "Design mockup", reason: "Not aligned with vision" },
-  // BA events
-  requirement_created: { requirement_id: "REQ-001", title: "User authentication", description: "..." },
-  requirement_updated: { requirement_id: "REQ-001", changes: "Added 2FA support" },
-  requirement_clarification: { question: "What about edge cases?", context: "..." },
-  user_story_created: { story_id: "US-001", title: "As a user, I want to...", points: 5 },
-  acceptance_criteria_defined: { story_id: "US-001", criteria: ["Given...", "When...", "Then..."] },
-  // PM events
-  sprint_started: { sprint_id: "Sprint-1", goal: "MVP features", duration_days: 14 },
-  sprint_completed: { sprint_id: "Sprint-1", velocity: 34, completed_points: 34 },
-  task_assigned: { task_id: "TASK-001", assignee: "", description: "Implement login" },
-  task_updated: { task_id: "TASK-001", status: "in_progress", progress: 50 },
-  blocker_reported: { blocker: "API dependency", severity: "high", affected_tasks: ["TASK-001"] },
-  blocker_resolved: { blocker: "API dependency", resolution: "Mocked the API" },
-  milestone_reached: { milestone: "Alpha release", achieved_at: new Date().toISOString() },
-  // Architect events
-  design_created: { design_id: "ARCH-001", type: "system_design", title: "Microservices architecture" },
-  design_updated: { design_id: "ARCH-001", changes: "Added caching layer" },
-  design_approved: { design_id: "ARCH-001", approver: "Tech Lead" },
-  technical_decision: { decision: "Use PostgreSQL", rationale: "Better for complex queries" },
-  architecture_review: { component: "Auth service", findings: "Good separation of concerns" },
-  // Developer events
-  code_started: { task_id: "TASK-001", branch: "feature/login" },
-  code_completed: { task_id: "TASK-001", files_changed: 5, lines_added: 150 },
-  code_committed: { commit_hash: "abc123", message: "feat: add login endpoint" },
-  pull_request_created: { pr_id: "PR-42", title: "Add login feature", reviewers: [] },
-  pull_request_merged: { pr_id: "PR-42", merged_by: "reviewer" },
-  code_review_requested: { pr_id: "PR-42", reviewer: "", urgency: "normal" },
-  code_review_completed: { pr_id: "PR-42", status: "approved", comments: 3 },
-  build_started: { build_id: "BUILD-001", trigger: "push" },
-  build_completed: { build_id: "BUILD-001", duration_seconds: 120, artifacts: ["app.js"] },
-  build_failed: { build_id: "BUILD-001", error: "Test failures", failed_tests: 2 },
-  // QA events
-  test_plan_created: { plan_id: "TP-001", coverage: ["unit", "integration", "e2e"] },
-  test_started: { test_suite: "auth-tests", total_tests: 25 },
-  test_passed: { test_name: "login_success", duration_ms: 150 },
-  test_failed: { test_name: "login_invalid_password", error: "Expected 401, got 500" },
-  bug_reported: { bug_id: "BUG-001", severity: "critical", title: "Login fails on Safari" },
-  bug_fixed: { bug_id: "BUG-001", fix_description: "Added browser compatibility" },
-  bug_verified: { bug_id: "BUG-001", verified_by: "QA" },
-  regression_found: { test_name: "checkout_flow", affected_version: "v1.2.0" },
-  // General events
-  status_update: { message: "Working on authentication module", progress: 75 },
-  communication: { to_agent: "", message_type: "info", subject: "Update", content: "..." },
-  document_created: { doc_type: "technical_spec", title: "API Documentation" },
-  meeting_scheduled: { meeting_type: "standup", participants: [], scheduled_at: new Date().toISOString() },
+  // Status updates
+  THINKING: { thought: "Analyzing requirements...", context: "task planning" },
+  WORKING: { task: "Implementing feature", progress: 50 },
+  EXECUTING: { action: "Running tests", command: "npm test" },
+  IDLE: { reason: "Waiting for dependencies", duration_seconds: 30 },
+  ERROR: { error_type: "ValidationError", message: "Invalid input", details: "..." },
+  // Task management
+  TASK_COMPLETE: { task_id: "TASK-001", result: "success", output: "Feature implemented" },
+  WORK_REQUEST: { task_id: "TASK-002", assignee: "", description: "Review this PR", priority: "high" },
+  WORK_COMPLETE: { task_id: "TASK-002", deliverable: "Code review completed", notes: "LGTM" },
+  // Communication
+  MESSAGE_SEND: { to_agent: "", subject: "Status Update", content: "Task completed successfully" },
+  MESSAGE_RECEIVE: { from_agent: "", subject: "New Task", content: "Please review the design" },
+  REVIEW_REQUEST: { reviewer: "", item_type: "code", item_id: "PR-42", description: "Please review" },
+  FEEDBACK: { to_agent: "", feedback_type: "positive", content: "Great work on the implementation!" },
+  // Custom
+  CUSTOM_EVENT: { event_name: "custom_action", data: {} },
 }
 
 // Sent event for history
