@@ -108,6 +108,13 @@ This document provides the complete epic and story breakdown for SDLC Game Dashb
 | FR-AL01 | Epic 4 | Log retrieval |
 | FR-FV04 | Epic 4 | Camera controls |
 | FR-FV06 | Epic 4 | Agent interaction |
+| FR-SIM01 | Epic 5 | Simulator web app setup |
+| FR-SIM02 | Epic 5 | Company creation UI |
+| FR-SIM03 | Epic 5 | Agent management UI |
+| FR-SIM04 | Epic 5 | Event sender UI |
+| FR-SIM05 | Epic 5 | Predefined test scenarios |
+| FR-SIM06 | Epic 5 | Event history panel |
+| FR-SIM07 | Epic 5 | Connection status indicator |
 
 ## Epic List
 
@@ -169,6 +176,22 @@ This document provides the complete epic and story breakdown for SDLC Game Dashb
 - Agent interaction (click to show tooltip with status)
 - Activity log panel (collapsible, filterable)
 - Log detail expansion (show full payload)
+
+---
+
+### Epic 5: Simulator Client Web App
+
+**Goal:** Developers và testers có web-based simulator để test dashboard mà không cần client app thật.
+
+**FRs covered:** FR-SIM01, FR-SIM02, FR-SIM03, FR-SIM04, FR-SIM05, FR-SIM06, FR-SIM07
+
+**Includes:**
+- Standalone web app (React + TypeScript + Vite)
+- Company/Agent creation forms
+- Event sender với dropdown chọn event types
+- Predefined test scenarios (demo, stress test)
+- Event history log
+- Connection status indicator
 
 ---
 
@@ -865,6 +888,240 @@ So that **I can focus on specific activities**.
 
 ---
 
+## Epic 5: Simulator Client Web App
+
+**Goal:** Developers và testers có web-based simulator để test dashboard mà không cần client app thật.
+
+### Story 5.1: Simulator Web App Setup
+
+As a **developer**,
+I want **to run a standalone simulator web app alongside the dashboard**,
+So that **I can test dashboard functionality without building the real client app**.
+
+**Acceptance Criteria:**
+
+**Given** the project is running with docker-compose
+**When** I access `http://localhost:3001` (simulator port)
+**Then** I see the Simulator Client web interface
+**And** the app loads in <3 seconds
+**And** the app is built with React + TypeScript + Vite
+
+**Given** the simulator app is loaded
+**When** I view the interface
+**Then** I see a clean layout with sections for: Company Management, Agent Management, Event Sender, Event History
+**And** the UI uses consistent styling with the dashboard (dark theme, same color palette)
+
+---
+
+### Story 5.2: Company Creation UI
+
+As a **tester**,
+I want **to create test companies via a simple form**,
+So that **I can quickly set up test data without using curl/Postman**.
+
+**Acceptance Criteria:**
+
+**Given** I am on the simulator home page
+**When** I click "Create Company"
+**Then** I see a form with fields: Company Name (required), Description (optional)
+**And** I see a "Create" button
+
+**Given** I fill in "Test Company Alpha" and click Create
+**When** the form is submitted
+**Then** simulator calls POST /api/companies to the dashboard API
+**And** success message shows "Company created: {company_id}"
+**And** the new company appears in the "Active Companies" dropdown
+
+**Given** the API returns an error
+**When** form submission fails
+**Then** error message displays with details from API response
+**And** form remains filled for correction
+
+---
+
+### Story 5.3: Agent Management UI
+
+As a **tester**,
+I want **to create and manage agents for a selected company**,
+So that **I can populate the dashboard with test agents**.
+
+**Acceptance Criteria:**
+
+**Given** I have selected a company from the dropdown
+**When** I click "Add Agent"
+**Then** I see a form with fields:
+  - Agent ID (required, e.g., "BA-001")
+  - Name (required, e.g., "Alice")
+  - Role (dropdown with defaults: customer, ba, pm, architect, developer, qa + custom input option)
+
+**Given** I fill in agent details and click "Add"
+**When** form is submitted
+**Then** simulator calls POST /api/companies/{id}/agents
+**And** success message shows "Agent added: {agent_id}"
+**And** agent appears in the "Company Agents" list below
+
+**Given** I click "Remove" next to an agent in the list
+**When** confirmation is accepted
+**Then** simulator calls DELETE /api/companies/{id}/agents/{agent_id}
+**And** agent is removed from the list
+
+**Given** company has agents
+**When** I view the Company Agents list
+**Then** I see each agent with: Agent ID, Name, Role (with color badge), Status
+**And** list updates when dashboard state changes
+
+---
+
+### Story 5.4: Event Sender UI
+
+As a **tester**,
+I want **to send events to the dashboard via a user-friendly form**,
+So that **I can trigger visualizations and test all event types**.
+
+**Acceptance Criteria:**
+
+**Given** I have a company with agents selected
+**When** I view the Event Sender section
+**Then** I see:
+  - Agent dropdown (populated with company's agents)
+  - Event Type dropdown (all 43 event types grouped by category)
+  - Payload editor (JSON textarea with syntax highlighting)
+  - "Send Event" button
+
+**Given** I select agent "BA-001" and event type "THINKING"
+**When** event type is selected
+**Then** payload editor auto-fills with template payload for that event type:
+```json
+{
+  "thought": "Enter thought here..."
+}
+```
+
+**Given** I select "MESSAGE_SEND" event type
+**When** template loads
+**Then** I see additional "To Agent" dropdown appear
+**And** payload template includes: `to_agent`, `message_type`, `subject`, `content`
+
+**Given** I click "Send Event"
+**When** event is sent
+**Then** simulator calls POST /api/events with the payload
+**And** success indicator shows briefly (green checkmark)
+**And** event appears in Event History below
+
+**Given** I want to send events quickly
+**When** I use keyboard shortcut Ctrl+Enter
+**Then** event is sent (same as clicking Send button)
+
+---
+
+### Story 5.5: Predefined Test Scenarios
+
+As a **demo presenter**,
+I want **to run predefined event sequences**,
+So that **I can demonstrate dashboard features without manual event sending**.
+
+**Acceptance Criteria:**
+
+**Given** I have a company selected
+**When** I click "Scenarios" tab
+**Then** I see a list of predefined scenarios:
+  - "Quick Demo" - 5 events showing basic workflow (30 seconds)
+  - "Full SDLC Cycle" - Complete BA→Dev→QA flow (2 minutes)
+  - "Multi-Agent Collaboration" - 3 agents working together
+  - "Stress Test" - Rapid events to test performance
+  - "All Event Types" - Demonstrates each event type once
+
+**Given** I select "Quick Demo" scenario
+**When** I click "Run Scenario"
+**Then** scenario info panel shows: description, estimated duration, events count
+**And** "Start" and "Cancel" buttons appear
+
+**Given** I click "Start" on a scenario
+**When** scenario runs
+**Then** events are sent automatically with realistic timing delays
+**And** progress bar shows completion percentage
+**And** current event being sent is highlighted
+**And** I can click "Pause" to pause execution
+**And** I can click "Stop" to cancel remaining events
+
+**Given** scenario completes
+**When** all events are sent
+**Then** success message shows "Scenario complete: X events sent"
+**And** all events appear in Event History
+
+---
+
+### Story 5.6: Event History Panel
+
+As a **tester**,
+I want **to see a history of all events I've sent**,
+So that **I can track what I've tested and debug issues**.
+
+**Acceptance Criteria:**
+
+**Given** I have sent events from the simulator
+**When** I view the Event History section
+**Then** I see a table with columns: Timestamp, Agent, Event Type, Status, Actions
+**And** most recent events appear at top
+**And** maximum 100 events are shown (older events are removed)
+
+**Given** an event was sent successfully
+**When** displayed in history
+**Then** Status shows green "✓ Sent" with event_id from API response
+
+**Given** an event failed to send
+**When** displayed in history
+**Then** Status shows red "✗ Failed" with error message
+**And** "Retry" button appears in Actions column
+
+**Given** I click on an event row
+**When** row expands
+**Then** I see full payload JSON that was sent
+**And** I see full API response received
+**And** "Copy Payload" button to copy JSON to clipboard
+
+**Given** I click "Clear History"
+**When** confirmed
+**Then** all events are removed from history
+**And** history is empty
+
+---
+
+### Story 5.7: Connection Status Indicator
+
+As a **tester**,
+I want **to see the connection status to the dashboard API**,
+So that **I know if my events will be received**.
+
+**Acceptance Criteria:**
+
+**Given** simulator app is loaded
+**When** I view the header bar
+**Then** I see connection status indicator showing: "Dashboard API: [status]"
+
+**Given** dashboard API is reachable
+**When** health check succeeds
+**Then** indicator shows green dot with "Connected"
+**And** tooltip shows: "API URL: http://localhost:8000, Version: X.X.X"
+
+**Given** dashboard API is not reachable
+**When** health check fails
+**Then** indicator shows red dot with "Disconnected"
+**And** tooltip shows last error message
+**And** "Retry" button appears
+
+**Given** connection status changes
+**When** API becomes available/unavailable
+**Then** indicator updates within 5 seconds (periodic health check)
+**And** toast notification shows "Dashboard connected" or "Dashboard disconnected"
+
+**Given** I click on the connection indicator
+**When** settings panel opens
+**Then** I can change API base URL (default: http://localhost:8000)
+**And** I can manually trigger "Test Connection"
+
+---
+
 ## Summary
 
 | Epic | Title | Stories |
@@ -873,4 +1130,5 @@ So that **I can focus on specific activities**.
 | 2 | Teams Can Register and Appear | 9 |
 | 3 | Teams Can Demonstrate AI Activities | 10 |
 | 4 | Judges Can Review and Evaluate | 7 |
-| **Total** | | **30 stories** |
+| 5 | Simulator Client Web App | 7 |
+| **Total** | | **37 stories** |
