@@ -1,4 +1,4 @@
-# generated: 2026-02-04
+# generated: 2026-02-04 (updated)
 # project: dashboard
 # project_key: NOKEY
 # tracking_system: file-system
@@ -90,4 +90,15 @@ development_status:
   4-7-log-filtering-ui: done
   epic-4-retrospective: optional
 
-  # NOTE: All 4 epics complete - 30/30 stories done!
+  # Epic 5: Simulator Client Web App
+  epic-5: in-progress
+  5-1-simulator-web-app-setup: done
+  5-2-company-creation-ui: review
+  5-3-agent-management-ui: review
+  5-4-event-sender-ui: review
+  5-5-predefined-test-scenarios: review
+  5-6-event-history-panel: review
+  5-7-connection-status-indicator: review
+  epic-5-retrospective: optional
+
+  # NOTE: Epic 1-4 complete (30 stories done), Epic 5 added (7 stories in backlog)

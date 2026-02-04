@@ -14,7 +14,7 @@ class Settings(BaseSettings):
         return self.database_url.replace("+asyncpg", "+psycopg2")
 
     # CORS - accepts comma-separated string or list
-    cors_origins: str = "http://localhost:3000"
+    cors_origins: str = "http://localhost:3000,http://localhost:3001,http://localhost:5173,http://localhost:5174"
 
     @property
     def cors_origins_list(self) -> list[str]:
