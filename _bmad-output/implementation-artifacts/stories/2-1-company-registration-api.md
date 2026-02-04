@@ -72,3 +72,26 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 **Modified:**
 - `backend/app/schemas/company.py` - Made `agents` field optional
 - `backend/app/api/companies.py` - Added `status_code=201` to POST endpoint
+
+### Code Review Fixes (2026-02-04)
+
+**Issues Fixed (Epic 2 overall):**
+1. [HIGH] Added comprehensive API tests: `backend/tests/test_companies.py` (25+ tests)
+2. [HIGH] Fixed N+1 query in list_companies using subqueries and joins
+3. [HIGH] Implemented HSL hash color generation for roles beyond palette size
+4. [MEDIUM] Added cascading delete for agent events/movements
+5. [MEDIUM] Added pagination support to list_companies (limit/offset)
+6. [MEDIUM] Moved STATUS_ICONS to constants.ts from MainScene.ts
+7. [MEDIUM] Added loading/error states to CompanySelector
+8. [MEDIUM] Fixed default API port from 8000 to 8002
+9. [LOW] Fixed deprecated datetime.utcnow() to datetime.now(timezone.utc)
+
+**Files Modified:**
+- `backend/app/api/companies.py` - N+1 fix, pagination, cascading delete, HSL colors
+- `backend/app/models/role_config.py` - Fixed deprecated datetime
+- `frontend/src/utils/constants.ts` - Added STATUS_ICONS, fixed API port
+- `frontend/src/scenes/MainScene.ts` - Import STATUS_ICONS from constants
+- `frontend/src/ui/CompanySelector.ts` - Added loading/error states
+
+**Files Created:**
+- `backend/tests/test_companies.py` - 25+ tests for all Epic 2 endpoints

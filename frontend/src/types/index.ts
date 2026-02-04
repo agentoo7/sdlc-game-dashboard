@@ -36,6 +36,7 @@ export interface CompanyState {
 
 // Movement types
 export interface PendingMovement {
+  id: string;
   agent_id: string;
   from_zone: string;
   to_zone: string;

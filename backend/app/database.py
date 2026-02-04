@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 from alembic import command
@@ -10,9 +9,10 @@ from sqlmodel import SQLModel
 from app.config import settings
 
 # Create async engine
+# Only log SQL queries in DEBUG mode (security/performance)
 engine = create_async_engine(
     settings.database_url,
-    echo=True,  # Log SQL queries (disable in production)
+    echo=settings.log_level == "DEBUG",
     future=True,
 )
 

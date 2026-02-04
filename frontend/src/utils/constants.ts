@@ -40,25 +40,50 @@ export const ZONE_POSITIONS = {
   qa: { x: 400, y: 650 },
 } as const;
 
-// Agent status types
+// Agent status types (matches backend agent.status values)
 export enum AgentStatus {
   IDLE = 'idle',
   THINKING = 'thinking',
   WORKING = 'working',
+  EXECUTING = 'executing',
+  ERROR = 'error',
   WALKING = 'walking',
 }
 
-// Event types from backend
+// Event types from backend (must match backend/app/schemas/event.py EventType)
 export enum EventType {
+  // Core event types (Story 3.2)
+  THINKING = 'THINKING',
+  WORKING = 'WORKING',
+  EXECUTING = 'EXECUTING',
+  IDLE = 'IDLE',
+  ERROR = 'ERROR',
+  TASK_COMPLETE = 'TASK_COMPLETE',
+
+  // Communication event types (Story 3.3)
+  MESSAGE_SEND = 'MESSAGE_SEND',
+  MESSAGE_RECEIVE = 'MESSAGE_RECEIVE',
+
+  // Work events
   WORK_REQUEST = 'WORK_REQUEST',
   WORK_COMPLETE = 'WORK_COMPLETE',
   REVIEW_REQUEST = 'REVIEW_REQUEST',
   FEEDBACK = 'FEEDBACK',
-  THINKING = 'THINKING',
-  WORKING = 'WORKING',
-  IDLE = 'IDLE',
+
+  // Custom event (Story 3.10)
+  CUSTOM_EVENT = 'CUSTOM_EVENT',
 }
 
+// Status indicator icons for agent visualization
+export const STATUS_ICONS: Record<string, string> = {
+  thinking: '💭',
+  working: '📝',
+  executing: '⚡',
+  error: '❌',
+  walking: '🚶',
+  idle: '',
+} as const;
+
 // API configuration
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8002/api';
 export const POLLING_INTERVAL = 1000; // 1 second

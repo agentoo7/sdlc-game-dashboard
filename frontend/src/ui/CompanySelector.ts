@@ -6,6 +6,8 @@ export class CompanySelector {
   private companies: Company[] = [];
   private selectedCompanyId: string | null = null;
   private onSelectCallback: ((companyId: string) => void) | null = null;
+  private isLoading = false;
+  private loadError: string | null = null;
 
   constructor(containerId: string) {
     const container = document.getElementById(containerId);
@@ -16,7 +18,10 @@ export class CompanySelector {
   }
 
   async init(): Promise<void> {
+    this.isLoading = true;
+    this.render();
     await this.loadCompanies();
+    this.isLoading = false;
     this.render();
   }
 
@@ -29,6 +34,7 @@ export class CompanySelector {
   }
 
   private async loadCompanies(): Promise<void> {
+    this.loadError = null;
     try {
       this.companies = await apiService.getCompanies();
       // Auto-select first company if none selected
@@ -37,6 +43,7 @@ export class CompanySelector {
       }
     } catch (error) {
       console.error('Failed to load companies:', error);
+      this.loadError = error instanceof Error ? error.message : 'Failed to load teams';
       this.companies = [];
     }
   }
@@ -46,7 +53,7 @@ export class CompanySelector {
       <div class="flex items-center h-full px-4 gap-3 overflow-x-auto">
         <span class="text-sm font-semibold text-slate-400 whitespace-nowrap">TEAMS:</span>
         <div class="flex gap-3" id="company-cards">
-          ${this.companies.length === 0 ? this.renderEmptyState() : this.renderCompanyCards()}
+          ${this.renderContent()}
         </div>
       </div>
     `;
@@ -60,6 +67,40 @@ export class CompanySelector {
         }
       });
     });
+  }
+
+  private renderContent(): string {
+    if (this.isLoading) {
+      return this.renderLoadingState();
+    }
+    if (this.loadError) {
+      return this.renderErrorState();
+    }
+    if (this.companies.length === 0) {
+      return this.renderEmptyState();
+    }
+    return this.renderCompanyCards();
+  }
+
+  private renderLoadingState(): string {
+    return `
+      <div class="text-slate-400 text-sm flex items-center gap-2">
+        <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Loading teams...
+      </div>
+    `;
+  }
+
+  private renderErrorState(): string {
+    return `
+      <div class="text-red-400 text-sm flex items-center gap-2">
+        <span>Failed to load teams</span>
+        <button class="text-amber-400 hover:text-amber-300 underline" id="retry-btn">Retry</button>
+      </div>
+    `;
   }
 
   private renderEmptyState(): string {

@@ -1,7 +1,12 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
 from sqlmodel import Field, SQLModel
+
+
+def _utc_now() -> datetime:
+    """Return current UTC time as naive datetime (for TIMESTAMP WITHOUT TIME ZONE)."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 class RoleConfig(SQLModel, table=True):
@@ -15,7 +20,7 @@ class RoleConfig(SQLModel, table=True):
     color: str = Field(max_length=20)  # e.g., "#22C55E"
     zone_color: str = Field(max_length=50)  # e.g., "rgba(34, 197, 94, 0.3)"
     is_default: bool = Field(default=False)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=_utc_now)
 
 
 # Default BMAD roles (seeded on startup)

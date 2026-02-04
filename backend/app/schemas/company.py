@@ -79,6 +79,7 @@ class AgentState(BaseModel):
 class PendingMovement(BaseModel):
     """Pending movement in company state."""
 
+    id: str
     agent_id: str
     from_zone: str
     to_zone: str

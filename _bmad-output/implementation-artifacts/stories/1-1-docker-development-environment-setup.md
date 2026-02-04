@@ -178,3 +178,35 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 - `backend/app/main.py` - FastAPI app with CORS and lifespan
 - `backend/app/config.py` - Settings configuration
 - `backend/app/database.py` - Async SQLAlchemy setup
+
+### Code Review Fixes (2026-02-04)
+
+**Issues Fixed:**
+1. [HIGH] Removed unused `import os` from database.py
+2. [HIGH] Changed `echo=True` to `echo=settings.log_level == "DEBUG"` for production safety
+3. [HIGH] Added healthchecks for frontend and backend services in docker-compose.yml
+4. [HIGH] Changed hardcoded credentials to env variables with defaults in docker-compose.yml
+5. [HIGH] Created `.env.example` files for project root and backend
+6. [HIGH] Added backend tests: `backend/tests/test_health.py`
+7. [HIGH] Added frontend tests and vitest configuration
+8. [MEDIUM] Added config validation in `backend/app/config.py`
+9. [MEDIUM] Fixed CORS_ORIGINS parsing to handle string format
+10. [LOW] Removed TODO comments and dead code from BootScene.ts
+
+**Files Modified:**
+- `docker-compose.yml` - Added healthchecks, env variable substitution
+- `backend/app/database.py` - Removed unused import, conditional SQL logging
+- `backend/app/config.py` - Added validators for log_level and database_url
+- `backend/app/main.py` - Use cors_origins_list property
+- `frontend/src/scenes/BootScene.ts` - Removed TODO and commented code
+- `frontend/package.json` - Added vitest dependencies
+
+**Files Created:**
+- `.env.example` - Root environment example
+- `backend/.env.example` - Backend environment example
+- `backend/tests/conftest.py` - Pytest configuration
+- `backend/tests/test_health.py` - Health endpoint tests
+- `frontend/vitest.config.ts` - Vitest configuration
+- `frontend/src/config.test.ts` - Game configuration tests
+- `frontend/src/ui/CompanySelector.test.ts` - CompanySelector tests
+- `frontend/src/ui/ActivityLog.test.ts` - ActivityLog tests

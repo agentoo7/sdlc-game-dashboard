@@ -30,3 +30,18 @@ Already implemented in backend/app/api/companies.py:
 
 **Pre-existing:**
 - `backend/app/api/companies.py` - get_company_logs()
+
+### Code Review Fixes (2026-02-04)
+
+**Issues Fixed (Epic 4 overall):**
+1. [HIGH] Added comprehensive Logs API tests: `backend/tests/test_logs.py` (14 tests)
+2. [MEDIUM] Fixed zoom increment to be fixed 0.1x as per AC (was variable)
+3. [MEDIUM] Added all 13 event types to filter panel (was only 6)
+4. [MEDIUM] Added summaries for all event types in ActivityLog
+
+**Files Modified:**
+- `frontend/src/scenes/MainScene.ts` - Fixed zoom to use 0.1x increments
+- `frontend/src/ui/ActivityLog.ts` - Added all event types to filter, improved summaries
+
+**Files Created:**
+- `backend/tests/test_logs.py` - 14 tests for logs API (sorting, filtering, pagination)

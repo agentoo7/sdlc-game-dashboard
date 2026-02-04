@@ -56,3 +56,28 @@ So that **my AI agent activities are recorded and visualized**.
 **Modified:**
 - `backend/app/schemas/event.py` - EventType enum, updated schemas
 - `backend/app/api/events.py` - Agent validation, improved action inference
+
+### Code Review Fixes (2026-02-04)
+
+**Issues Fixed (Epic 3 overall):**
+1. [HIGH] Added comprehensive Event API tests: `backend/tests/test_events.py` (20+ tests)
+2. [HIGH] Added movement progress update endpoint: PATCH /companies/{id}/movements/{id}
+3. [HIGH] Added movement completion endpoint: POST /companies/{id}/movements/{id}/complete
+4. [HIGH] Added movement cleanup endpoint: DELETE /companies/{id}/movements/cleanup
+5. [MEDIUM] Fixed deprecated datetime.utcnow() in movement.py and event.py
+6. [MEDIUM] Synced frontend EventType and AgentStatus enums with backend
+7. [MEDIUM] Added movement id to PendingMovement schema and response
+8. [MEDIUM] Updated MainScene to call completeMovement when animation finishes
+
+**Files Modified:**
+- `backend/app/models/movement.py` - Fixed deprecated datetime
+- `backend/app/models/event.py` - Fixed deprecated datetime
+- `backend/app/api/companies.py` - Added movement management endpoints, include id in response
+- `backend/app/schemas/company.py` - Added id to PendingMovement
+- `frontend/src/utils/constants.ts` - Synced EventType and AgentStatus enums
+- `frontend/src/types/index.ts` - Added id to PendingMovement interface
+- `frontend/src/services/ApiService.ts` - Added movement API methods
+- `frontend/src/scenes/MainScene.ts` - Call completeMovement on animation finish
+
+**Files Created:**
+- `backend/tests/test_events.py` - 20+ tests for event API and state transitions

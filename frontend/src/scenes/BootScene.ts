@@ -30,12 +30,6 @@ export class BootScene extends Scene {
     this.load.on('progress', (value: number) => {
       progressBar.width = 396 * value;
     });
-
-    // TODO: Load actual assets when available
-    // For now, create placeholder assets programmatically
-
-    // Simulate loading delay for demo
-    // this.load.image('placeholder', 'assets/placeholder.png');
   }
 
   create(): void {

@@ -66,14 +66,28 @@ export class ActivityLog {
         return payload.thought as string || 'Thinking...';
       case 'WORKING':
         return payload.task as string || 'Working on task';
+      case 'EXECUTING':
+        return payload.command as string || 'Executing...';
       case 'WORK_REQUEST':
         return `Requested work from ${log.to_agent}`;
       case 'WORK_COMPLETE':
         return `Completed work for ${log.to_agent}`;
+      case 'REVIEW_REQUEST':
+        return `Requested review from ${log.to_agent}`;
+      case 'FEEDBACK':
+        return `Provided feedback to ${log.to_agent}`;
+      case 'MESSAGE_SEND':
+        return `Sent message to ${log.to_agent}`;
+      case 'MESSAGE_RECEIVE':
+        return `Received message from ${log.from_agent}`;
+      case 'TASK_COMPLETE':
+        return 'Task completed';
       case 'IDLE':
         return 'Became idle';
       case 'ERROR':
         return payload.error as string || 'Error occurred';
+      case 'CUSTOM_EVENT':
+        return payload.event_name as string || 'Custom event';
       default:
         return log.event_type;
     }
@@ -178,7 +192,22 @@ export class ActivityLog {
     const panel = this.container.querySelector('#filter-panel');
     if (!panel) return;
 
-    const eventTypes = ['THINKING', 'WORKING', 'WORK_REQUEST', 'WORK_COMPLETE', 'IDLE', 'ERROR'];
+    // All event types matching backend EventType enum
+    const eventTypes = [
+      'THINKING',
+      'WORKING',
+      'EXECUTING',
+      'IDLE',
+      'ERROR',
+      'TASK_COMPLETE',
+      'MESSAGE_SEND',
+      'MESSAGE_RECEIVE',
+      'WORK_REQUEST',
+      'WORK_COMPLETE',
+      'REVIEW_REQUEST',
+      'FEEDBACK',
+      'CUSTOM_EVENT',
+    ];
 
     panel.innerHTML = `
       <div class="text-xs">

@@ -1,17 +1,7 @@
 import { Scene } from 'phaser';
-import { ROLE_COLORS, ZONE_POSITIONS, CUSTOM_ROLE_COLORS, POLLING_INTERVAL } from '@/utils/constants';
+import { ROLE_COLORS, ZONE_POSITIONS, CUSTOM_ROLE_COLORS, POLLING_INTERVAL, STATUS_ICONS } from '@/utils/constants';
 import { apiService } from '@/services/ApiService';
 import type { Agent, RoleConfig, CompanyState, PendingMovement } from '@/types';
-
-// Status indicator icons
-const STATUS_ICONS: Record<string, string> = {
-  thinking: '💭',
-  working: '📝',
-  executing: '⚡',
-  error: '❌',
-  walking: '🚶',
-  idle: '',
-};
 
 export class MainScene extends Scene {
   private agents: Map<string, Phaser.GameObjects.Container> = new Map();
@@ -53,10 +43,12 @@ export class MainScene extends Scene {
   }
 
   private setupCameraControls(): void {
-    // Zoom with scroll wheel
+    // Zoom with scroll wheel - fixed 0.1x increment per scroll (AC: Story 4.1)
     this.input.on('wheel', (_pointer: Phaser.Input.Pointer, _gameObjects: unknown[], _deltaX: number, deltaY: number) => {
       const zoom = this.cameras.main.zoom;
-      const newZoom = Phaser.Math.Clamp(zoom - deltaY * 0.001, 0.5, 2);
+      // Use fixed 0.1x increment regardless of wheel delta magnitude
+      const zoomDelta = deltaY > 0 ? -0.1 : 0.1;
+      const newZoom = Phaser.Math.Clamp(zoom + zoomDelta, 0.5, 2);
       this.cameras.main.setZoom(newZoom);
     });
 
@@ -342,13 +334,15 @@ export class MainScene extends Scene {
     const container = this.agents.get(movement.agent_id);
     if (!container) return;
 
-    // Skip if already moving
+    // Skip if already moving or if we've already processed this movement
     if (container.getData('isMoving')) return;
+    if (container.getData('processedMovementId') === movement.id) return;
 
     const toZonePos = ZONE_POSITIONS[movement.to_zone as keyof typeof ZONE_POSITIONS];
     if (!toZonePos) return;
 
     container.setData('isMoving', true);
+    container.setData('processedMovementId', movement.id);
 
     // Walk to destination
     this.tweens.add({
@@ -357,12 +351,27 @@ export class MainScene extends Scene {
       y: toZonePos.y,
       duration: 1500,
       ease: 'Linear',
-      onComplete: () => {
+      onComplete: async () => {
         container.setData('isMoving', false);
 
         // If purpose is handoff, show artifact animation
         if (movement.purpose === 'handoff' && movement.artifact) {
           this.showHandoffAnimation(container, movement.artifact);
+        }
+
+        // Mark movement as complete in backend
+        if (this.currentCompanyId && movement.id) {
+          try {
+            await apiService.completeMovement(this.currentCompanyId, movement.id);
+          } catch (error) {
+            console.error('Failed to complete movement:', error);
+          }
+        }
+
+        // If this was a return movement, reset agent to idle animation
+        if (movement.purpose === 'return') {
+          this.updateStatusIndicator(movement.agent_id, 'idle');
+          this.addIdleAnimation(container);
         }
       },
     });
