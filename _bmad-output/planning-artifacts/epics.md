@@ -115,6 +115,11 @@ This document provides the complete epic and story breakdown for SDLC Game Dashb
 | FR-SIM05 | Epic 5 | Predefined test scenarios |
 | FR-SIM06 | Epic 5 | Event history panel |
 | FR-SIM07 | Epic 5 | Connection status indicator |
+| FR-UX01 | Epic 6 | Activity Log sidebar |
+| FR-UX02 | Epic 6 | Camera controls toolbar |
+| FR-UX03 | Epic 6 | Pixel art character sprites |
+| FR-UX04 | Epic 6 | ChatDev-style office layout |
+| FR-UX05 | Epic 6 | Agent speech bubbles |
 
 ## Epic List
 
@@ -1122,6 +1127,151 @@ So that **I know if my events will be received**.
 
 ---
 
+## Epic 6: UX v2.0 Dashboard Redesign (ChatDev-Inspired)
+
+**Goal:** Redesign the dashboard with ChatDev-inspired pixel art style, sidebar Activity Log, improved camera controls, and speech bubbles for better visual feedback.
+
+**FRs covered:** FR-UX01 (Activity Log Sidebar), FR-UX02 (Camera Controls Toolbar), FR-UX03 (Pixel Art Characters), FR-UX04 (ChatDev Office Layout), FR-UX05 (Speech Bubbles)
+
+**Includes:**
+- Collapsible right sidebar for Activity Log (320px → 40px)
+- Camera control toolbar with zoom/pan/center/reset buttons
+- Pixel art chibi characters with colorful anime hair
+- ChatDev-style office with wooden floor, department signs, decorations
+- Agent speech bubbles with state icons
+
+**Source:** _bmad-output/implementation-artifacts/stories/ux-v2-implementation-stories.md
+
+---
+
+### Story 6.1: Activity Log Sidebar Implementation
+
+As a **user**,
+I want **the Activity Log to be in a collapsible right sidebar instead of at the bottom**,
+So that **I have more vertical space for the game view and can easily toggle the log visibility**.
+
+**Acceptance Criteria:**
+
+**Given** the dashboard is loaded
+**When** I view the Activity Log
+**Then** it appears as a right sidebar panel (320px width when expanded)
+**And** a collapse/expand button (◀/▶) toggles the sidebar
+**And** when collapsed, sidebar width is 40px with unread count badge
+**And** collapse/expand has smooth animation (200ms ease-out)
+**And** sidebar state is persisted in localStorage
+
+**Given** the sidebar is toggled
+**When** state changes
+**Then** game viewport resizes to fill remaining space
+**And** filter dropdown works in sidebar layout
+**And** log entries have colored left border by agent role
+
+---
+
+### Story 6.2: Camera Controls Toolbar
+
+As a **user**,
+I want **a camera control toolbar with Zoom In, Zoom Out, Pan, Center, and Reset buttons**,
+So that **I can easily navigate the office view without relying only on mouse gestures**.
+
+**Acceptance Criteria:**
+
+**Given** the game viewport is active
+**When** I view the bottom-left corner
+**Then** I see a toolbar with 5 buttons: Zoom In (🔍+), Zoom Out (🔍-), Pan (↔️), Center (⌖), Reset (🔄)
+**And** toolbar has semi-transparent dark background (#1E293B, 80% opacity)
+**And** buttons have states: default, hover, active, disabled
+
+**Given** zoom controls
+**When** used
+**Then** zoom limits are 0.5x to 2.0x
+**And** zoom step is 0.2x per click
+
+**Given** keyboard shortcuts
+**When** pressed
+**Then** `+`/`=` → Zoom In, `-`/`_` → Zoom Out, `P` → Toggle Pan Mode, `C`/`Home` → Center View, `R`/`0` → Reset View
+
+---
+
+### Story 6.3: Pixel Art Character Sprites
+
+As a **user**,
+I want **the agents to be cute pixel art chibi characters with colorful anime hair**,
+So that **the dashboard feels more like a game (ChatDev style) and agents are easily distinguishable**.
+
+**Acceptance Criteria:**
+
+**Given** agents are rendered
+**When** displayed in the game
+**Then** character sprites are pixel art style (32x48 base, displayed at 64x96)
+**And** each agent has unique hair color assigned by index (Blue #60A5FA, Purple #A78BFA, Green #4ADE80, Red #F87171, Pink #F472B6, Brown #A1887F)
+**And** character outfit color matches their role color
+**And** characters have big expressive anime-style eyes
+
+**Given** character animations
+**When** agent state changes
+**Then** walk animation shows 4-frame cycle
+**And** idle animation shows subtle breathing
+**And** characters sit at desks with computers when working
+
+---
+
+### Story 6.4: ChatDev-Style Office Layout
+
+As a **user**,
+I want **the office to look like ChatDev with wooden floors, department signs, desks, and decorations**,
+So that **the dashboard feels warm, cozy, and game-like**.
+
+**Acceptance Criteria:**
+
+**Given** the MainScene renders
+**When** office is displayed
+**Then** floor has wooden plank texture (warm brown #8B7355)
+**And** department zones have wooden pole signs: Designing, Coding, Testing, Documenting
+**And** central area has company name carpet/rug
+**And** pixel art desks with computers appear in each zone
+**And** decorative plants (🪴) in corners and between zones
+
+**Given** zone layout
+**When** displayed
+**Then** zones are arranged in 2x2 grid:
+  - Designing (top-left), Documenting (top-right)
+  - Coding (bottom-left), Testing (bottom-right)
+
+---
+
+### Story 6.5: Agent Speech Bubbles
+
+As a **user**,
+I want **agents to show speech bubbles with icons indicating their current activity**,
+So that **I can instantly see what each agent is doing (thinking, working, error, etc.)**.
+
+**Acceptance Criteria:**
+
+**Given** agent state changes
+**When** not IDLE
+**Then** icon bubble (24x24px) appears above agent
+**And** bubble uses state-to-icon mapping:
+  - THINKING: 💡 (Yellow)
+  - WORKING: 📝 (Blue)
+  - EXECUTING: ⚡ (Orange)
+  - TASK_COMPLETE: ✅ (Green)
+  - ERROR: ⚠️ (Red)
+  - MESSAGE_SEND/RECEIVE: 💬 (Blue)
+  - FEEDBACK: 👍 (Green)
+
+**Given** bubble animations
+**When** appearing/disappearing
+**Then** pop-in animation: scale 0→1 with bounce (200ms)
+**And** float animation: subtle up/down motion while visible
+**And** pop-out animation: scale 1→0 (150ms)
+
+**Given** agent becomes IDLE
+**When** state changes
+**Then** bubble disappears with pop-out animation
+
+---
+
 ## Summary
 
 | Epic | Title | Stories |
@@ -1131,4 +1281,5 @@ So that **I know if my events will be received**.
 | 3 | Teams Can Demonstrate AI Activities | 10 |
 | 4 | Judges Can Review and Evaluate | 7 |
 | 5 | Simulator Client Web App | 7 |
-| **Total** | | **37 stories** |
+| 6 | UX v2.0 Dashboard Redesign | 5 |
+| **Total** | | **42 stories** |
