@@ -43,6 +43,26 @@ class ApiService {
     return response.json();
   }
 
+  // Movement endpoints
+  async completeMovement(companyId: string, movementId: string): Promise<void> {
+    const response = await fetch(
+      `${this.baseUrl}/companies/${companyId}/movements/${movementId}/complete`,
+      { method: 'POST' }
+    );
+    if (!response.ok) {
+      console.warn('Failed to complete movement:', movementId);
+    }
+  }
+
+  async cleanupCompletedMovements(companyId: string): Promise<{ deleted_count: number }> {
+    const response = await fetch(
+      `${this.baseUrl}/companies/${companyId}/movements/cleanup`,
+      { method: 'DELETE' }
+    );
+    if (!response.ok) throw new Error('Failed to cleanup movements');
+    return response.json();
+  }
+
   // Health check
   async healthCheck(): Promise<{ status: string; version: string }> {
     const response = await fetch(`${this.baseUrl}/health`);

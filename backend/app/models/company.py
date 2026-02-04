@@ -7,6 +7,7 @@ from sqlmodel import Field, Relationship, SQLModel
 if TYPE_CHECKING:
     from app.models.agent import Agent
     from app.models.event import Event
+    from app.models.movement import Movement
 
 
 class Company(SQLModel, table=True):
@@ -23,3 +24,4 @@ class Company(SQLModel, table=True):
     # Relationships
     agents: list["Agent"] = Relationship(back_populates="company")
     events: list["Event"] = Relationship(back_populates="company")
+    movements: list["Movement"] = Relationship(back_populates="company")

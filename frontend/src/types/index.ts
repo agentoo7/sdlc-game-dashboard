@@ -6,6 +6,7 @@ export interface Agent {
   status: AgentStatus;
   position: Position;
   current_task?: string;
+  role_config?: RoleConfig;
 }
 
 export interface Position {
@@ -14,7 +15,7 @@ export interface Position {
   y: number;
 }
 
-export type AgentStatus = 'idle' | 'thinking' | 'working' | 'walking';
+export type AgentStatus = 'idle' | 'thinking' | 'working' | 'walking' | 'executing' | 'error';
 
 // Company types
 export interface Company {
@@ -23,6 +24,7 @@ export interface Company {
   description?: string;
   agent_count: number;
   last_activity?: string;
+  status?: string;
 }
 
 export interface CompanyState {
@@ -34,11 +36,13 @@ export interface CompanyState {
 
 // Movement types
 export interface PendingMovement {
+  id: string;
   agent_id: string;
   from_zone: string;
   to_zone: string;
   purpose: string;
   artifact?: string;
+  progress?: number;
 }
 
 // Role configuration (for dynamic roles)
@@ -76,6 +80,8 @@ export interface LogEntry {
   timestamp: string;
   from_agent?: string;
   to_agent?: string;
-  event_type: EventType;
-  summary: string;
+  event_type: string;
+  payload: Record<string, unknown>;
+  inferred_actions?: string[];
+  summary?: string;
 }

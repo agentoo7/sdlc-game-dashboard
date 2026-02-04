@@ -11,10 +11,10 @@ export class BootScene extends Scene {
     const height = this.cameras.main.height;
 
     // Loading text
-    const loadingText = this.add.text(width / 2, height / 2 - 50, 'Loading...', {
+    const loadingText = this.add.text(width / 2, height / 2 - 50, 'SDLC Game Dashboard - Loading...', {
       fontSize: '24px',
       color: '#F8FAFC',
-      fontFamily: 'Inter',
+      fontFamily: 'Inter, system-ui, sans-serif',
     });
     loadingText.setOrigin(0.5);
 
@@ -30,12 +30,6 @@ export class BootScene extends Scene {
     this.load.on('progress', (value: number) => {
       progressBar.width = 396 * value;
     });
-
-    // TODO: Load actual assets when available
-    // For now, create placeholder assets programmatically
-
-    // Simulate loading delay for demo
-    // this.load.image('placeholder', 'assets/placeholder.png');
   }
 
   create(): void {
