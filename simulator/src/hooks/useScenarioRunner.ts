@@ -81,6 +81,7 @@ export function useScenarioRunner({
 
       // Send to API
       const response = await api.sendEvent({
+        company_id: company.id,
         event_type: scenarioEvent.eventType,
         agent_id: agent.id,
         data: scenarioEvent.payload,
