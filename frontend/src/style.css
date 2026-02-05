@@ -50,13 +50,34 @@ html, body {
   @apply border-2 border-amber-400 shadow-lg shadow-amber-400/20;
 }
 
-/* Activity Log */
+/* Activity Log Sidebar */
+.activity-sidebar {
+  width: 320px;
+  transition: width 200ms ease-out;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.activity-sidebar.collapsed {
+  width: 40px;
+}
+
 #activity-log {
-  @apply p-4 overflow-y-auto font-mono text-sm;
+  @apply font-mono text-sm h-full;
 }
 
 .log-entry {
-  @apply flex gap-4 py-1 px-2 rounded hover:bg-slate-700/50;
+  @apply flex flex-col gap-1 py-2 px-3 rounded hover:bg-slate-700/50 border-l-4;
+  border-left-color: #64748B; /* Default slate color */
+}
+
+.log-entry-header {
+  @apply flex items-center gap-2 text-xs;
+}
+
+.log-entry-content {
+  @apply text-sm text-slate-300;
 }
 
 .log-time {
@@ -81,4 +102,84 @@ html, body {
 
 .log-summary {
   @apply text-slate-300 truncate;
+}
+
+/* Sidebar Header */
+.sidebar-header {
+  @apply flex items-center justify-between px-3 py-2 border-b border-slate-700 flex-shrink-0;
+}
+
+.sidebar-header.collapsed {
+  @apply flex-col gap-2 py-3;
+}
+
+/* Unread Badge */
+.unread-badge {
+  @apply bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5
+         flex items-center justify-center px-1;
+}
+
+/* Toggle Button */
+.sidebar-toggle-btn {
+  @apply w-8 h-8 flex items-center justify-center rounded bg-slate-700
+         hover:bg-slate-600 transition-colors text-slate-300;
+}
+
+/* Sidebar Content */
+.sidebar-content {
+  @apply flex-1 overflow-y-auto overflow-x-hidden px-2 py-2;
+}
+
+.sidebar-content.collapsed {
+  @apply hidden;
+}
+
+/* Camera Toolbar */
+.camera-toolbar {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  display: flex;
+  gap: 4px;
+  padding: 8px;
+  background: rgba(30, 41, 59, 0.8); /* #1E293B at 80% opacity */
+  border-radius: 8px;
+  border: 1px solid rgba(71, 85, 105, 0.5);
+  z-index: 100;
+}
+
+.camera-toolbar-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #94A3B8;
+  cursor: pointer;
+  transition: all 150ms ease;
+  font-size: 16px;
+  position: relative;
+}
+
+.camera-toolbar-btn:hover:not(:disabled) {
+  background: rgba(71, 85, 105, 0.5);
+  color: #F8FAFC;
+}
+
+.camera-toolbar-btn:active:not(:disabled) {
+  background: rgba(71, 85, 105, 0.8);
+  transform: scale(0.95);
+}
+
+.camera-toolbar-btn.active {
+  background: rgba(59, 130, 246, 0.3); /* Blue highlight for pan mode */
+  color: #60A5FA;
+}
+
+.camera-toolbar-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }

@@ -8,22 +8,27 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   </head>
-  <body class="bg-bg-darker text-slate-50 font-sans">
-    <div id="app">
+  <body class="bg-bg-darker text-slate-50 font-sans h-screen overflow-hidden">
+    <div id="app" class="flex flex-col h-full">
       <!-- Company Selector -->
-      <header id="company-selector" class="h-20 bg-bg-dark border-b border-slate-700">
+      <header id="company-selector" class="h-20 bg-bg-dark border-b border-slate-700 flex-shrink-0">
         <!-- Populated by JS -->
       </header>
 
-      <!-- Game Viewport -->
-      <main id="game-container" class="relative">
-        <!-- Phaser canvas will be inserted here -->
-      </main>
+      <!-- Main Content: Game + Sidebar -->
+      <div id="main-content" class="flex flex-row flex-1 min-h-0">
+        <!-- Game Viewport -->
+        <main id="game-container" class="flex-1 relative min-w-0">
+          <!-- Phaser canvas will be inserted here -->
+          <!-- Camera Controls Toolbar -->
+          <div id="camera-toolbar"></div>
+        </main>
 
-      <!-- Activity Log -->
-      <footer id="activity-log" class="h-32 bg-bg-dark border-t border-slate-700">
-        <!-- Populated by JS -->
-      </footer>
+        <!-- Activity Log Sidebar -->
+        <aside id="activity-log" class="activity-sidebar bg-bg-dark border-l border-slate-700 flex-shrink-0">
+          <!-- Populated by JS -->
+        </aside>
+      </div>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>

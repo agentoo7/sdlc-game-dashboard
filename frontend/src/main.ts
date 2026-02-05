@@ -5,15 +5,18 @@ import { MainScene } from './scenes/MainScene';
 import { UIScene } from './scenes/UIScene';
 import { CompanySelector } from './ui/CompanySelector';
 import { ActivityLog } from './ui/ActivityLog';
+import { CameraToolbar } from './ui/CameraToolbar';
 
 // Calculate game dimensions with minimum size
 const MIN_WIDTH = 800;
 const MIN_HEIGHT = 600;
 const HEADER_HEIGHT = 80;
-const FOOTER_HEIGHT = 128;
 
-const getGameWidth = () => Math.max(window.innerWidth, MIN_WIDTH);
-const getGameHeight = () => Math.max(window.innerHeight - HEADER_HEIGHT - FOOTER_HEIGHT, MIN_HEIGHT);
+// Sidebar width reference (will be updated by ActivityLog)
+let currentSidebarWidth = 320; // Default expanded width
+
+const getGameWidth = () => Math.max(window.innerWidth - currentSidebarWidth, MIN_WIDTH);
+const getGameHeight = () => Math.max(window.innerHeight - HEADER_HEIGHT, MIN_HEIGHT);
 
 // Game configuration
 const config: Phaser.Types.Core.GameConfig = {
@@ -47,8 +50,35 @@ game.events.once('ready', async () => {
   // Initialize company selector
   const companySelector = new CompanySelector('company-selector');
 
-  // Initialize activity log
+  // Initialize activity log sidebar
   const activityLog = new ActivityLog('activity-log');
+
+  // Initialize camera toolbar
+  const cameraToolbar = new CameraToolbar('camera-toolbar');
+
+  // Update sidebar width from ActivityLog initial state
+  currentSidebarWidth = activityLog.getSidebarWidth();
+
+  // Listen for sidebar toggle events
+  const handleSidebarToggle = ((event: CustomEvent<{ expanded: boolean; width: number }>) => {
+    currentSidebarWidth = event.detail.width;
+
+    // Resize game to fit new available space
+    const newWidth = getGameWidth();
+    const newHeight = getGameHeight();
+    game.scale.resize(newWidth, newHeight);
+
+    console.log(`Sidebar toggled: expanded=${event.detail.expanded}, width=${event.detail.width}, gameWidth=${newWidth}`);
+  }) as EventListener;
+
+  window.addEventListener('sidebarToggle', handleSidebarToggle);
+
+  // Cleanup on game destroy
+  game.events.once('destroy', () => {
+    window.removeEventListener('sidebarToggle', handleSidebarToggle);
+    activityLog.destroy();
+    cameraToolbar.destroy();
+  });
 
   companySelector.onSelect((companyId) => {
     console.log(`Company selected: ${companyId}`);
@@ -64,6 +94,9 @@ game.events.once('ready', async () => {
     game.events.emit('selectCompany', initialCompanyId);
     activityLog.setCompany(initialCompanyId);
   }
+
+  // Initial resize to account for sidebar
+  game.scale.resize(getGameWidth(), getGameHeight());
 });
 
 // Handle window resize

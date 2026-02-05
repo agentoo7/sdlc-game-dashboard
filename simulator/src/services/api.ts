@@ -88,8 +88,8 @@ class ApiService {
   }
 
   // Company endpoints
-  async getCompanies(): Promise<ApiResponse<Company[]>> {
-    return this.request<Company[]>('/companies')
+  async getCompanies(): Promise<ApiResponse<{ companies: Company[] }>> {
+    return this.request<{ companies: Company[] }>('/companies')
   }
 
   async createCompany(name: string, description?: string): Promise<ApiResponse<Company>> {

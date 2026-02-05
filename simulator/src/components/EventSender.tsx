@@ -78,7 +78,7 @@ function EventSender({ company, agents, onEventSent, onEventUpdate }: EventSende
 
   // Generate unique event ID
   const generateEventId = () => {
-    return `evt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    return `evt_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
   }
 
   // Send event

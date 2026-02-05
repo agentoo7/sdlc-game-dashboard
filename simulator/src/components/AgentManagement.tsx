@@ -1,7 +1,7 @@
-import { useState, useEffect, FormEvent } from 'react'
+import { useState, useEffect, useCallback, FormEvent } from 'react'
 import { api } from '../services/api'
 import type { Company, Agent } from '../types'
-import { DEFAULT_ROLES, getRoleColor, getRoleDisplayName } from '../types'
+import { DEFAULT_ROLES, DEFAULT_AGENT_ROLE, getRoleColor, getRoleDisplayName } from '../types'
 
 interface AgentManagementProps {
   company: Company | null
@@ -18,7 +18,7 @@ function AgentManagement({ company, agents, onAgentsChange }: AgentManagementPro
   // Form state
   const [agentId, setAgentId] = useState('')
   const [name, setName] = useState('')
-  const [role, setRole] = useState('developer')
+  const [role, setRole] = useState(DEFAULT_AGENT_ROLE)
   const [customRole, setCustomRole] = useState('')
   const [showCustomRole, setShowCustomRole] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -42,16 +42,7 @@ function AgentManagement({ company, agents, onAgentsChange }: AgentManagementPro
     }
   }, [toast])
 
-  // Fetch agents when company changes
-  useEffect(() => {
-    if (company) {
-      loadAgents()
-    } else {
-      onAgentsChange([])
-    }
-  }, [company?.id])
-
-  const loadAgents = async () => {
+  const loadAgents = useCallback(async () => {
     if (!company) return
 
     setLoadingAgents(true)
@@ -62,7 +53,16 @@ function AgentManagement({ company, agents, onAgentsChange }: AgentManagementPro
       setToast({ type: 'error', message: `Failed to load agents: ${response.error}` })
     }
     setLoadingAgents(false)
-  }
+  }, [company, onAgentsChange])
+
+  // Fetch agents when company changes
+  useEffect(() => {
+    if (company) {
+      loadAgents()
+    } else {
+      onAgentsChange([])
+    }
+  }, [company, loadAgents, onAgentsChange])
 
   const handleRoleChange = (value: string) => {
     if (value === 'custom') {
@@ -127,17 +127,15 @@ function AgentManagement({ company, agents, onAgentsChange }: AgentManagementPro
       // Clear form
       setAgentId('')
       setName('')
-      setRole('developer')
+      setRole(DEFAULT_AGENT_ROLE)
       setCustomRole('')
       setShowCustomRole(false)
 
       // Refresh agent list
       await loadAgents()
     } else if (response.error) {
-      const errorMessage = typeof response.error === 'string'
-        ? response.error
-        : 'Failed to create agent'
-      setToast({ type: 'error', message: errorMessage })
+      // Preserve API error details (AC3 compliance)
+      setToast({ type: 'error', message: response.error })
     }
 
     setSubmitting(false)

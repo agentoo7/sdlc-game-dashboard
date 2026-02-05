@@ -30,14 +30,49 @@ export const CUSTOM_ROLE_COLORS = [
   0x0EA5E9, // Sky
 ] as const;
 
-// Zone positions in the office layout (following organic flow)
+// Zone positions in the office layout (ChatDev-style 2x2 grid - Story 6.4)
+// Layout:
+// +-------------------+-------------------+
+// |     DESIGNING     |    DOCUMENTING    |
+// |   (BA, PM, Cust)  |    (Architect)    |
+// +-------------------+-------------------+
+// |      CODING       |      TESTING      |
+// |    (Developer)    |       (QA)        |
+// +-------------------+-------------------+
 export const ZONE_POSITIONS = {
-  customer: { x: 400, y: 80 },
-  ba: { x: 200, y: 250 },
-  pm: { x: 400, y: 250 },
-  architect: { x: 600, y: 250 },
-  developer: { x: 400, y: 450 },
-  qa: { x: 400, y: 650 },
+  // ChatDev-style department zones (2x2 grid)
+  designing: { x: 200, y: 200 },    // Top-left
+  documenting: { x: 600, y: 200 },  // Top-right
+  coding: { x: 200, y: 500 },       // Bottom-left
+  testing: { x: 600, y: 500 },      // Bottom-right
+} as const;
+
+// Role to zone mapping (Story 6.4)
+export const ROLE_TO_ZONE: Record<string, keyof typeof ZONE_POSITIONS> = {
+  customer: 'designing',
+  ba: 'designing',
+  pm: 'designing',
+  architect: 'documenting',
+  developer: 'coding',
+  qa: 'testing',
+} as const;
+
+// Zone display labels (Story 6.4)
+export const ZONE_LABELS: Record<keyof typeof ZONE_POSITIONS, string> = {
+  designing: 'DESIGNING',
+  documenting: 'DOCUMENTING',
+  coding: 'CODING',
+  testing: 'TESTING',
+} as const;
+
+// Legacy role-based zone positions (for backwards compatibility)
+export const ROLE_ZONE_POSITIONS = {
+  customer: ZONE_POSITIONS.designing,
+  ba: ZONE_POSITIONS.designing,
+  pm: ZONE_POSITIONS.designing,
+  architect: ZONE_POSITIONS.documenting,
+  developer: ZONE_POSITIONS.coding,
+  qa: ZONE_POSITIONS.testing,
 } as const;
 
 // Agent status types (matches backend agent.status values)

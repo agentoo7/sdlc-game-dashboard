@@ -73,6 +73,9 @@ export const DEFAULT_ROLES: { value: string; label: string; color: string }[] = 
   { value: 'qa', label: 'QA Engineer', color: '#EF4444' },
 ]
 
+// Default role for new agents (index 4 = developer)
+export const DEFAULT_AGENT_ROLE = DEFAULT_ROLES[4].value
+
 // Get role color by role value
 export const getRoleColor = (role: string): string => {
   const found = DEFAULT_ROLES.find(r => r.value === role)
