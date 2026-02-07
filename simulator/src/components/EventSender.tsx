@@ -123,7 +123,7 @@ function EventSender({ company, agents, onEventSent, onEventUpdate }: EventSende
       company_id: company.id,
       event_type: selectedEventType,
       agent_id: selectedAgentId,
-      data: payload,
+      payload: payload,
     })
 
     if (response.data) {

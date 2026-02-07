@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import EventSender from './EventSender'
 import { api } from '../services/api'
 import type { Company, Agent } from '../types'
-import { EVENT_CATEGORIES, EVENT_PAYLOAD_TEMPLATES, isCommunicationEvent, COMMUNICATION_EVENTS } from '../types'
+import { EVENT_CATEGORIES, EVENT_PAYLOAD_TEMPLATES, isCommunicationEvent } from '../types'
 
 // Mock the API service
 vi.mock('../services/api', () => ({

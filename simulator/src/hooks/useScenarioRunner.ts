@@ -84,7 +84,7 @@ export function useScenarioRunner({
         company_id: company.id,
         event_type: scenarioEvent.eventType,
         agent_id: agent.id,
-        data: scenarioEvent.payload,
+        payload: scenarioEvent.payload,
       })
 
       if (response.data) {

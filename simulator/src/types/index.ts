@@ -104,13 +104,14 @@ export type EventType =
   | 'FEEDBACK'
   | 'CUSTOM_EVENT'
 
-// Event payload interface
+// Event payload interface (matches backend EventCreate schema)
 export interface EventPayload {
   company_id: string
   event_type: EventType
   agent_id: string
+  to_agent?: string
+  payload?: Record<string, unknown>
   timestamp?: string
-  data?: Record<string, unknown>
 }
 
 // API Response interfaces
@@ -218,4 +219,71 @@ export interface EventSendResponse {
   event_id: string
   timestamp: string
   status: string
+}
+
+// ============================================================
+// SDLC Simulator Types
+// ============================================================
+
+// 10 SDLC roles (from ref app)
+export const SDLC_ROLES = [
+  { value: 'analyst', label: 'Business Analyst', color: '#4ECDC4', icon: '📊' },
+  { value: 'pm', label: 'Product Manager', color: '#FF6B6B', icon: '📋' },
+  { value: 'po', label: 'Product Owner', color: '#FFE66D', icon: '👑' },
+  { value: 'architect', label: 'System Architect', color: '#95E1D3', icon: '🏗️' },
+  { value: 'ux', label: 'UX Designer', color: '#DDA0DD', icon: '🎨' },
+  { value: 'sm', label: 'Scrum Master', color: '#F7DC6F', icon: '🎯' },
+  { value: 'dev', label: 'Developer', color: '#74B9FF', icon: '💻' },
+  { value: 'qa', label: 'QA Engineer', color: '#A29BFE', icon: '🔍' },
+  { value: 'devops', label: 'DevOps Engineer', color: '#FD79A8', icon: '⚙️' },
+  { value: 'orchestrator', label: 'Project Orchestrator', color: '#00CEC9', icon: '🎭' },
+] as const
+
+export type SDLCRoleValue = typeof SDLC_ROLES[number]['value']
+
+// Get SDLC role info by value
+export const getSDLCRole = (role: string) => {
+  return SDLC_ROLES.find(r => r.value === role)
+}
+
+// Workflow step interface
+export interface WorkflowStep {
+  from: string
+  to: string
+  action: string
+  eventType: EventType
+  topic: { title: string; markdown: string }
+}
+
+// SDLC Workflow definition
+export interface SDLCWorkflow {
+  id: string
+  name: string
+  description: string
+  steps: WorkflowStep[]
+  requiredRoles: string[]
+}
+
+// Agent name pools
+export const AGENT_NAMES = {
+  male: ['Alex', 'Brian', 'Chris', 'David', 'Eric', 'Frank', 'George', 'Henry', 'Ivan', 'Jack'],
+  female: ['Anna', 'Beth', 'Cathy', 'Diana', 'Emma', 'Fiona', 'Grace', 'Helen', 'Ivy', 'Julia'],
+}
+
+// Workflow runner status
+export type WorkflowStatus = 'idle' | 'running' | 'paused' | 'completed' | 'error'
+
+// SDLC Event for history display
+export interface SDLCEvent {
+  id: string
+  timestamp: string
+  fromAgent: string
+  fromRole: string
+  toAgent: string
+  toRole: string
+  action: string
+  eventType: EventType
+  topicTitle: string
+  status: 'pending' | 'success' | 'error'
+  error?: string
 }

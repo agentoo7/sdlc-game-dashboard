@@ -24,7 +24,7 @@ describe('ConnectionStatus', () => {
     vi.clearAllMocks()
     mockGetApiBaseUrl.mockReturnValue('http://localhost:8002/api')
     mockApi.healthCheck.mockResolvedValue({
-      data: { status: 'healthy', version: '1.0.0', database: 'connected' },
+      data: { status: 'healthy', version: '1.0.0', database: 'connected' } as { status: string },
       status: 200,
     })
   })
