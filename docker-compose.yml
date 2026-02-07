@@ -14,7 +14,7 @@ services:
     depends_on:
       - backend
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:3001 || exit 1"]
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:3001').then(() => process.exit(0)).catch(() => process.exit(1))\""]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -37,7 +37,7 @@ services:
     depends_on:
       - backend
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:3000 || exit 1"]
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:3000').then(() => process.exit(0)).catch(() => process.exit(1))\""]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -55,7 +55,7 @@ services:
     ports:
       - "8002:8000"
     environment:
-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-dashboard}:${POSTGRES_PASSWORD:-dashboard}@db:5432/${POSTGRES_DB:-sdlc_dashboard}
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-dashboard}:${POSTGRES_PASSWORD:-dashboard}@db:5432/sdlc_dashboard
       - CORS_ORIGINS=http://localhost:3000,http://localhost:3001,http://0.0.0.0:3000,http://0.0.0.0:3001,http://127.0.0.1:3000,http://127.0.0.1:3001
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
     depends_on:
@@ -76,7 +76,7 @@ services:
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-dashboard}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-dashboard}
-      - POSTGRES_DB=${POSTGRES_DB:-sdlc_dashboard}
+      - POSTGRES_DB=sdlc_dashboard
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:

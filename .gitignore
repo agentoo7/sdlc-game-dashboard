@@ -46,6 +46,11 @@ venv/
 # Docker
 postgres_data/
 
+# Reference files
+ref/
+
 # Misc
 *.tmp
 *.temp
+_bmad-output
+_bmad
