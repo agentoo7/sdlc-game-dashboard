@@ -6,7 +6,6 @@ import { Department } from '../classes/Department.js';
 import { Agent, AGENT_STATES } from '../classes/Agent.js';
 import { UIManager } from '../classes/UIManager.js';
 import { IsoUtils } from '../utils/IsoUtils.js';
-import { TILE_ASSETS } from '../utils/Constants.js';
 
 export class BMadOfficeScene extends Phaser.Scene {
     constructor() {
@@ -28,12 +27,7 @@ export class BMadOfficeScene extends Phaser.Scene {
         this._pollGeneration = 0;
     }
 
-    preload() {
-        Object.keys(TILE_ASSETS).forEach(key => this.load.image(key + '_raw', TILE_ASSETS[key].path));
-    }
-
     async create() {
-        this.processAssets();
         this.uiManager = new UIManager(this);
 
         // World setup
@@ -462,49 +456,10 @@ export class BMadOfficeScene extends Phaser.Scene {
 
     // --- Rendering Helpers ---
 
-    processAssets() {
-        // F3: Copy loaded _raw textures to _0 keys that Department.js expects
-        Object.keys(TILE_ASSETS).forEach(key => {
-            const rawKey = key + '_raw';
-            const targetKey = key + '_0';
-            if (this.textures.exists(rawKey) && !this.textures.exists(targetKey)) {
-                const source = this.textures.get(rawKey).getSourceImage();
-                this.textures.addImage(targetKey, source);
-            }
-        });
-        this.createFallbackTextures();
-    }
-
-    createFallbackTextures() {
-        ['floor_stone_0', 'floor_wood_0', 'floor_tile_0', 'floor_brick_0', 'floor_metal_0', 'floor_grass_0'].forEach(k => {
-            if (!this.textures.exists(k)) {
-                const g = this.make.graphics().fillStyle(0x7a7a7a).fillTriangle(0, 32, 64, 0, 128, 32).fillTriangle(0, 32, 128, 32, 64, 64).generateTexture(k, 128, 64);
-                g.destroy();
-            }
-        });
-        ['wall_se_0', 'wall_sw_0', 'wall_win_se_0', 'wall_win_sw_0'].forEach(k => {
-            if (!this.textures.exists(k)) {
-                const g = this.make.graphics().fillStyle(0x555555).fillRect(0, 0, 64, 96).generateTexture(k, 64, 96);
-                g.destroy();
-            }
-        });
-    }
-
     createBackground() {
         const bg = this.add.graphics();
         bg.fillGradientStyle(0x0a0a1a, 0x0a0a1a, 0x1a1a3a, 0x1a1a3a, 1);
         bg.fillRect(-500, -300, 5000, 4000).setDepth(-200);
-
-        // Grass
-        for (let row = -3; row < 23; row++) {
-            for (let col = -3; col < 33; col++) {
-                const iso = IsoUtils.gridToIso(col, row);
-                const tileKey = 'floor_grass_0';
-                if (this.textures.exists(tileKey)) {
-                    this.add.image(iso.x, iso.y, tileKey).setDepth(iso.y - 100);
-                }
-            }
-        }
     }
 
     setupMinimap() {
