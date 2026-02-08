@@ -79,10 +79,6 @@ function CompanyManagement({ selectedCompany, onCompanySelect }: CompanyManageme
       setValidationError('Company name is required')
       return false
     }
-    if (name.trim().length < 1) {
-      setValidationError('Company name must be at least 1 character')
-      return false
-    }
     return true
   }
 
@@ -110,11 +106,8 @@ function CompanyManagement({ selectedCompany, onCompanySelect }: CompanyManageme
       await loadCompanies()
       onCompanySelect(response.data)
     } else if (response.error) {
-      // Error - show toast, keep form values
-      const errorMessage = typeof response.error === 'string'
-        ? response.error
-        : 'Failed to create company'
-      setToast({ type: 'error', message: errorMessage })
+      // Error - show toast with API details, keep form values for correction (AC3)
+      setToast({ type: 'error', message: response.error })
     }
 
     setSubmitting(false)

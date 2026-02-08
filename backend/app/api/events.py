@@ -4,7 +4,7 @@ from sqlmodel import select
 
 from app.database import get_session
 from app.models import Agent, Company, Event, Movement
-from app.schemas.event import EventCreate, EventResponse, EventType
+from app.schemas.event import EventCreate, EventResponse
 
 router = APIRouter()
 
@@ -67,7 +67,7 @@ async def create_event(
         company_id=event_in.company_id,
         from_agent_id=event_in.agent_id,
         to_agent_id=event_in.to_agent,
-        event_type=event_in.event_type.value,
+        event_type=event_in.event_type.upper(),
         payload=event_in.payload,
         inferred_actions=inferred_actions,
     )
@@ -90,19 +90,15 @@ async def create_event(
 def infer_actions(event: EventCreate) -> list[str]:
     """
     Infer visual actions from business event type.
+    Accepts any event_type string — known types get specific handling,
+    unknown types fall through to payload-driven state.
     """
-    event_type = event.event_type
+    event_type = event.event_type.upper()  # Normalize
     agent_id = event.agent_id
     to_agent = event.to_agent
 
-    # Communication/work events - involve movement
-    if event_type in (
-        EventType.WORK_REQUEST,
-        EventType.WORK_COMPLETE,
-        EventType.REVIEW_REQUEST,
-        EventType.FEEDBACK,
-        EventType.MESSAGE_SEND,
-    ):
+    # Communication/work events — involve movement
+    if event_type in ("WORK_REQUEST", "WORK_COMPLETE", "REVIEW_REQUEST", "FEEDBACK", "MESSAGE_SEND"):
         if to_agent:
             return [
                 f"{agent_id}:walk_to:{to_agent}",
@@ -112,33 +108,28 @@ def infer_actions(event: EventCreate) -> list[str]:
             ]
         return [f"{agent_id}:status:working"]
 
-    # Core state events
-    elif event_type == EventType.THINKING:
-        return [f"{agent_id}:status:thinking"]
+    # Known state events — direct status mapping
+    STATE_MAP = {
+        "THINKING": "thinking", "WORKING": "working", "EXECUTING": "executing",
+        "IDLE": "idle", "ERROR": "error",
+        "CODING": "coding", "DISCUSSING": "discussing", "REVIEWING": "reviewing", "BREAK": "break",
+    }
+    if event_type in STATE_MAP:
+        return [f"{agent_id}:status:{STATE_MAP[event_type]}"]
 
-    elif event_type == EventType.WORKING:
-        return [f"{agent_id}:status:working"]
-
-    elif event_type == EventType.EXECUTING:
-        return [f"{agent_id}:status:executing"]
-
-    elif event_type == EventType.IDLE:
-        return [f"{agent_id}:status:idle"]
-
-    elif event_type == EventType.ERROR:
-        return [f"{agent_id}:status:error"]
-
-    elif event_type == EventType.TASK_COMPLETE:
+    if event_type == "TASK_COMPLETE":
         return [f"{agent_id}:status:idle", f"{agent_id}:task_complete"]
 
-    elif event_type == EventType.MESSAGE_RECEIVE:
+    if event_type == "MESSAGE_RECEIVE":
         return [f"{agent_id}:acknowledge"]
 
-    elif event_type == EventType.CUSTOM_EVENT:
-        # Custom events use payload for icon/animation
-        return [f"{agent_id}:custom:{event.payload.get('event_name', 'custom')}"]
+    if event_type == "CUSTOM_EVENT":
+        event_name = event.payload.get("event_name", "custom") if event.payload else "custom"
+        return [f"{agent_id}:custom:{event_name}"]
 
-    return []
+    # Unknown event — try payload.agent_state, fallback to working
+    agent_state = (event.payload.get("agent_state") if event.payload else None) or "working"
+    return [f"{agent_id}:status:{agent_state}"]
 
 
 async def update_agent_states(
@@ -168,7 +159,7 @@ async def update_agent_states(
                 agent.status = new_status
 
                 # Update current task from payload if available
-                if new_status in ("working", "thinking", "executing"):
+                if new_status in ("working", "thinking", "executing", "coding", "discussing", "reviewing"):
                     task = event.payload.get("task") or event.payload.get("thought")
                     if task:
                         agent.current_task = task

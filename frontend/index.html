@@ -2,29 +2,103 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SDLC Game Dashboard</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <title>BMAD Office - Isometric Simulation (Dashboard)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   </head>
-  <body class="bg-bg-darker text-slate-50 font-sans">
-    <div id="app">
-      <!-- Company Selector -->
-      <header id="company-selector" class="h-20 bg-bg-dark border-b border-slate-700">
-        <!-- Populated by JS -->
-      </header>
-
-      <!-- Game Viewport -->
-      <main id="game-container" class="relative">
-        <!-- Phaser canvas will be inserted here -->
-      </main>
-
-      <!-- Activity Log -->
-      <footer id="activity-log" class="h-32 bg-bg-dark border-t border-slate-700">
-        <!-- Populated by JS -->
-      </footer>
+  <body>
+    <div class="loading-screen" id="loading-screen">
+        <div class="loading-title">BMAD OFFICE</div>
+        <div class="loading-bar-container"><div class="loading-bar" id="loading-bar"></div></div>
+        <div class="loading-text" id="loading-text">Loading isometric assets...</div>
     </div>
-    <script type="module" src="/src/main.ts"></script>
+
+    <div class="game-container">
+        <header class="header">
+            <div class="logo">BMAD OFFICE <span>Dashboard v1.0</span></div>
+            <div class="header-center">
+                <select id="company-selector"><option value="">Select Company...</option></select>
+                <span id="connection-status" class="connection-status"></span>
+            </div>
+            <div class="controls-hint">
+                <span><span class="control-key">Drag</span> Pan</span>
+                <span><span class="control-key">Scroll</span> Zoom</span>
+                <span><span class="control-key">Click</span> Select</span>
+                <span><span class="control-key">ESC</span> Deselect</span>
+            </div>
+        </header>
+        <div class="main-content">
+            <div id="game-canvas">
+                <div class="no-company-overlay" id="no-company-overlay">
+                    <div class="no-company-icon">🏢</div>
+                    <div class="no-company-text">Select a company to begin</div>
+                </div>
+            </div>
+            <div class="side-panel">
+                <div class="panel-section">
+                    <div class="panel-title">Agent Details</div>
+                    <div id="agent-info-container">
+                        <div class="no-selection"><div class="no-selection-icon">🔍</div><div>Click on an agent to view details</div></div>
+                    </div>
+                </div>
+                <div class="panel-section">
+                    <div class="panel-header">
+                        <div class="panel-title" id="dept-title" style="flex:1;cursor:pointer;">Departments</div>
+                        <div class="panel-header-actions">
+                            <div class="mgmt-btn" id="add-dept-btn" title="Add Department">+</div>
+                            <div class="collapse-btn" id="dept-collapse-btn">−</div>
+                        </div>
+                    </div>
+                    <div class="panel-content" id="dept-content">
+                        <div class="department-list" id="department-list"></div>
+                    </div>
+                </div>
+                <div class="panel-section">
+                    <div class="panel-header">
+                        <div class="panel-title" id="agent-title" style="flex:1;cursor:pointer;">Agents</div>
+                        <div class="panel-header-actions">
+                            <div class="mgmt-btn" id="add-agent-btn" title="Add Agent">+</div>
+                            <div class="collapse-btn" id="agent-collapse-btn">−</div>
+                        </div>
+                    </div>
+                    <div class="panel-content" id="agent-content">
+                        <div class="agent-list" id="agent-list"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="zoom-controls">
+        <button class="zoom-btn" id="zoom-in-btn">+</button>
+        <button class="zoom-btn" id="zoom-out-btn">−</button>
+        <button class="zoom-btn" id="reset-view-btn">⌂</button>
+    </div>
+    <div class="minimap"><div class="minimap-title">Map</div><canvas id="minimap-canvas"></canvas></div>
+
+    <div class="modal-overlay" id="activity-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <div class="modal-title"><span>💬</span><span>Activity Details</span></div>
+                <button class="modal-close" id="close-activity-modal">✕</button>
+            </div>
+            <div class="modal-body" id="modal-body"></div>
+        </div>
+    </div>
+    <div class="activity-log" id="activity-log">
+        <div class="activity-log-title">Activity Log (click to view details)</div>
+        <div id="activity-list"></div>
+    </div>
+
+    <div class="mgmt-modal" id="mgmt-modal">
+        <div class="mgmt-modal-box">
+            <div class="mgmt-modal-title" id="mgmt-modal-title"></div>
+            <div id="mgmt-modal-content"></div>
+            <button class="mgmt-cancel" id="close-mgmt-modal">Cancel</button>
+        </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
   </body>
 </html>

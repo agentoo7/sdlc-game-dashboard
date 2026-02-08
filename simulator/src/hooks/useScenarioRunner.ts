@@ -46,7 +46,7 @@ export function useScenarioRunner({
 
   // Generate unique event ID
   const generateEventId = () => {
-    return `evt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    return `evt_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
   }
 
   // Send a single scenario event
@@ -81,9 +81,10 @@ export function useScenarioRunner({
 
       // Send to API
       const response = await api.sendEvent({
+        company_id: company.id,
         event_type: scenarioEvent.eventType,
         agent_id: agent.id,
-        data: scenarioEvent.payload,
+        payload: scenarioEvent.payload,
       })
 
       if (response.data) {

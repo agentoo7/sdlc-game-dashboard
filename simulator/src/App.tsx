@@ -4,6 +4,7 @@ import AgentManagement from './components/AgentManagement'
 import EventSender from './components/EventSender'
 import EventHistory from './components/EventHistory'
 import ConnectionStatus from './components/ConnectionStatus'
+import SDLCSimulator from './components/SDLCSimulator'
 import { api } from './services/api'
 import type { Company, Agent, SentEvent } from './types'
 
@@ -14,7 +15,11 @@ interface Toast {
   type: 'success' | 'error' | 'info'
 }
 
+type PageView = 'sdlc' | 'dashboard'
+
 function App() {
+  const [page, setPage] = useState<PageView>('sdlc')
+
   // Lifted state for selected company - shared across components
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null)
 
@@ -69,9 +74,10 @@ function App() {
 
     // Re-send the event
     const response = await api.sendEvent({
+      company_id: event.company_id,
       event_type: event.event_type,
       agent_id: event.agent_id,
-      data: event.payload,
+      payload: event.payload,
     })
 
     if (response.data) {
@@ -89,22 +95,39 @@ function App() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-dashboard-bg">
-      {/* Header */}
-      <header className="bg-dashboard-surface border-b border-gray-600 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-dashboard-text">
-            SDLC Dashboard Simulator
-          </h1>
-          <div className="flex items-center gap-4">
+    <>
+      {/* Page Navigation */}
+      <div className="fixed top-0 left-0 right-0 z-[100] border-b border-cyan-400/20" style={{ background: 'linear-gradient(90deg, rgba(10,10,26,0.98) 0%, rgba(26,26,58,0.95) 50%, rgba(10,10,26,0.98) 100%)' }}>
+        <div className="flex items-center gap-1 px-4 h-10">
+          <button
+            onClick={() => setPage('sdlc')}
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              page === 'sdlc'
+                ? 'bg-cyan-400/20 text-cyan-300 border border-cyan-400/30'
+                : 'text-[#a0aac8] hover:text-cyan-300 hover:bg-cyan-400/10'
+            }`}
+          >
+            SDLC Simulator
+          </button>
+          <button
+            onClick={() => setPage('dashboard')}
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              page === 'dashboard'
+                ? 'bg-cyan-400/20 text-cyan-300 border border-cyan-400/30'
+                : 'text-[#a0aac8] hover:text-cyan-300 hover:bg-cyan-400/10'
+            }`}
+          >
+            Dashboard Simulator
+          </button>
+          <div className="ml-auto">
             <ConnectionStatus onToast={addToast} />
           </div>
         </div>
-      </header>
+      </div>
 
       {/* Toast Notifications */}
       {toasts.length > 0 && (
-        <div className="fixed top-20 right-6 z-50 space-y-2">
+        <div className="fixed top-14 right-6 z-[101] space-y-2">
           {toasts.map((toast) => (
             <div
               key={toast.id}
@@ -122,47 +145,66 @@ function App() {
         </div>
       )}
 
-      {/* Main Content - 2x2 Grid */}
-      <main className="p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-120px)]">
-          {/* Top Left - Company Management */}
-          <div className="bg-dashboard-surface rounded-lg border border-gray-600 overflow-hidden">
-            <CompanyManagement
-              selectedCompany={selectedCompany}
-              onCompanySelect={handleCompanySelect}
-            />
-          </div>
+      {/* SDLC Simulator Page (stays mounted) */}
+      <div style={{ display: page === 'sdlc' ? 'block' : 'none' }} className="pt-10">
+        <SDLCSimulator />
+      </div>
 
-          {/* Top Right - Agent Management */}
-          <div className="bg-dashboard-surface rounded-lg border border-gray-600 overflow-hidden">
-            <AgentManagement
-              company={selectedCompany}
-              agents={agents}
-              onAgentsChange={setAgents}
-            />
-          </div>
+      {/* Dashboard Simulator Page (stays mounted) */}
+      <div style={{ display: page === 'dashboard' ? 'block' : 'none' }} className="pt-10">
+        <div className="min-h-screen bg-dashboard-bg text-dashboard-text">
+          {/* Header */}
+          <header className="bg-dashboard-surface border-b border-gray-600 px-6 py-4">
+            <div className="flex items-center justify-between">
+              <h1 className="text-2xl font-bold text-dashboard-text">
+                Dashboard Simulator
+              </h1>
+            </div>
+          </header>
 
-          {/* Bottom Left - Event Sender */}
-          <div className="bg-dashboard-surface rounded-lg border border-gray-600 overflow-hidden">
-            <EventSender
-              company={selectedCompany}
-              agents={agents}
-              onEventSent={handleEventSent}
-              onEventUpdate={handleEventUpdate}
-            />
-          </div>
+          {/* Main Content - 2x2 Grid */}
+          <main className="p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-160px)]">
+              {/* Top Left - Company Management */}
+              <div className="bg-dashboard-surface rounded-lg border border-gray-600 overflow-hidden">
+                <CompanyManagement
+                  selectedCompany={selectedCompany}
+                  onCompanySelect={handleCompanySelect}
+                />
+              </div>
 
-          {/* Bottom Right - Event History */}
-          <div className="bg-dashboard-surface rounded-lg border border-gray-600 overflow-hidden">
-            <EventHistory
-              events={eventHistory}
-              onClear={handleClearHistory}
-              onRetry={handleRetryEvent}
-            />
-          </div>
+              {/* Top Right - Agent Management */}
+              <div className="bg-dashboard-surface rounded-lg border border-gray-600 overflow-hidden">
+                <AgentManagement
+                  company={selectedCompany}
+                  agents={agents}
+                  onAgentsChange={setAgents}
+                />
+              </div>
+
+              {/* Bottom Left - Event Sender */}
+              <div className="bg-dashboard-surface rounded-lg border border-gray-600 overflow-hidden">
+                <EventSender
+                  company={selectedCompany}
+                  agents={agents}
+                  onEventSent={handleEventSent}
+                  onEventUpdate={handleEventUpdate}
+                />
+              </div>
+
+              {/* Bottom Right - Event History */}
+              <div className="bg-dashboard-surface rounded-lg border border-gray-600 overflow-hidden">
+                <EventHistory
+                  events={eventHistory}
+                  onClear={handleClearHistory}
+                  onRetry={handleRetryEvent}
+                />
+              </div>
+            </div>
+          </main>
         </div>
-      </main>
-    </div>
+      </div>
+    </>
   )
 }
 

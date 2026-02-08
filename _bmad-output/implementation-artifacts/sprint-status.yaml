@@ -91,14 +91,25 @@ development_status:
   epic-4-retrospective: optional
 
   # Epic 5: Simulator Client Web App
-  epic-5: in-progress
+  epic-5: done
   5-1-simulator-web-app-setup: done
-  5-2-company-creation-ui: review
-  5-3-agent-management-ui: review
-  5-4-event-sender-ui: review
-  5-5-predefined-test-scenarios: review
-  5-6-event-history-panel: review
-  5-7-connection-status-indicator: review
+  5-2-company-creation-ui: done
+  5-3-agent-management-ui: done
+  5-4-event-sender-ui: done
+  5-5-predefined-test-scenarios: done
+  5-6-event-history-panel: done
+  5-7-connection-status-indicator: done
   epic-5-retrospective: optional
 
-  # NOTE: Epic 1-4 complete (30 stories done), Epic 5 added (7 stories in backlog)
+  # NOTE: Epic 1-4 complete (30 stories done), Epic 5 in-progress (7 stories)
+
+  # Epic 6: UX v2.0 Dashboard Redesign (ChatDev-Inspired)
+  epic-6: done
+  6-1-activity-log-sidebar-implementation: done
+  6-2-camera-controls-toolbar: done
+  6-3-pixel-art-character-sprites: done
+  6-4-chatdev-style-office-layout: done
+  6-5-agent-speech-bubbles: done
+  epic-6-retrospective: optional
+
+  # NOTE: Epic 6 added (5 UX v2.0 stories)

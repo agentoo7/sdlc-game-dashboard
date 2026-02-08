@@ -131,6 +131,34 @@ async def get_company(
     )
 
 
+@router.delete("/{company_id}")
+async def delete_company(
+    company_id: UUID,
+    session: AsyncSession = Depends(get_session),
+):
+    """Delete a company and all related data (agents, events, movements)."""
+    result = await session.execute(select(Company).where(Company.id == company_id))
+    company = result.scalars().first()
+
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+
+    # Cascade delete: movements, events, agents, then company
+    await session.execute(
+        Movement.__table__.delete().where(Movement.company_id == company_id)
+    )
+    await session.execute(
+        Event.__table__.delete().where(Event.company_id == company_id)
+    )
+    await session.execute(
+        Agent.__table__.delete().where(Agent.company_id == company_id)
+    )
+    await session.delete(company)
+    await session.commit()
+
+    return {"company_id": str(company_id), "status": "deleted"}
+
+
 async def get_or_create_role_config(
     role: str, session: AsyncSession
 ) -> RoleConfig:

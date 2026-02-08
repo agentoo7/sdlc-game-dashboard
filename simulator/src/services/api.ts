@@ -88,8 +88,16 @@ class ApiService {
   }
 
   // Company endpoints
-  async getCompanies(): Promise<ApiResponse<Company[]>> {
-    return this.request<Company[]>('/companies')
+  async getCompanies(): Promise<ApiResponse<{ companies: Company[] }>> {
+    const response = await this.request<{ companies: (Company & { company_id?: string })[] }>('/companies')
+    if (response.data) {
+      const companies = (response.data.companies || []).map(c => ({
+        ...c,
+        id: c.id || c.company_id || '',
+      }))
+      return { data: { companies }, status: response.status }
+    }
+    return response as ApiResponse<{ companies: Company[] }>
   }
 
   async createCompany(name: string, description?: string): Promise<ApiResponse<Company>> {
@@ -97,10 +105,14 @@ class ApiService {
     if (description) {
       body.description = description
     }
-    return this.request<Company>('/companies', {
+    const response = await this.request<Company & { company_id?: string }>('/companies', {
       method: 'POST',
       body: JSON.stringify(body),
     })
+    if (response.data) {
+      response.data.id = response.data.id || response.data.company_id || ''
+    }
+    return response as ApiResponse<Company>
   }
 
   async getCompany(id: string): Promise<ApiResponse<Company>> {
@@ -158,13 +170,20 @@ class ApiService {
   }
 
   // Event endpoints
-  async sendEvent(payload: EventPayload): Promise<ApiResponse<unknown>> {
+  async sendEvent(eventPayload: EventPayload): Promise<ApiResponse<unknown>> {
+    const body: Record<string, unknown> = {
+      company_id: eventPayload.company_id,
+      agent_id: eventPayload.agent_id,
+      event_type: eventPayload.event_type,
+      payload: eventPayload.payload || {},
+      timestamp: eventPayload.timestamp || new Date().toISOString(),
+    }
+    if (eventPayload.to_agent) {
+      body.to_agent = eventPayload.to_agent
+    }
     return this.request<unknown>('/events', {
       method: 'POST',
-      body: JSON.stringify({
-        ...payload,
-        timestamp: payload.timestamp || new Date().toISOString(),
-      }),
+      body: JSON.stringify(body),
     })
   }
 

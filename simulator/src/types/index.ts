@@ -37,7 +37,7 @@ export interface ApiErrorResponse {
 }
 
 // Agent status types
-export type AgentStatus = 'idle' | 'thinking' | 'working' | 'walking'
+export type AgentStatus = 'idle' | 'thinking' | 'working' | 'walking' | 'coding' | 'discussing' | 'reviewing' | 'break' | string
 
 // Role config from API
 export interface RoleConfig {
@@ -73,6 +73,9 @@ export const DEFAULT_ROLES: { value: string; label: string; color: string }[] = 
   { value: 'qa', label: 'QA Engineer', color: '#EF4444' },
 ]
 
+// Default role for new agents (index 4 = developer)
+export const DEFAULT_AGENT_ROLE = DEFAULT_ROLES[4].value
+
 // Get role color by role value
 export const getRoleColor = (role: string): string => {
   const found = DEFAULT_ROLES.find(r => r.value === role)
@@ -85,29 +88,26 @@ export const getRoleDisplayName = (role: string): string => {
   return found?.label || role
 }
 
-// Event types - matching the API enum
-export type EventType =
-  | 'THINKING'
-  | 'WORKING'
-  | 'EXECUTING'
-  | 'IDLE'
-  | 'ERROR'
-  | 'TASK_COMPLETE'
-  | 'MESSAGE_SEND'
-  | 'MESSAGE_RECEIVE'
-  | 'WORK_REQUEST'
-  | 'WORK_COMPLETE'
-  | 'REVIEW_REQUEST'
-  | 'FEEDBACK'
-  | 'CUSTOM_EVENT'
+// Free-form event type — backend accepts any string
+export type EventType = string
 
-// Event payload interface
+// Well-known event types for UI dropdowns and documentation
+export const KNOWN_EVENT_TYPES = [
+  'THINKING', 'WORKING', 'EXECUTING', 'IDLE', 'ERROR', 'TASK_COMPLETE',
+  'MESSAGE_SEND', 'MESSAGE_RECEIVE',
+  'WORK_REQUEST', 'WORK_COMPLETE', 'REVIEW_REQUEST', 'FEEDBACK',
+  'CODING', 'DISCUSSING', 'REVIEWING', 'BREAK',
+  'CUSTOM_EVENT',
+] as const
+
+// Event payload interface (matches backend EventCreate schema)
 export interface EventPayload {
   company_id: string
   event_type: EventType
   agent_id: string
+  to_agent?: string
+  payload?: Record<string, unknown>
   timestamp?: string
-  data?: Record<string, unknown>
 }
 
 // API Response interfaces
@@ -153,15 +153,16 @@ export const ROLE_NAMES: Record<AgentRole, string> = {
 }
 
 // Event type categories - organized by agent behavior
-export const EVENT_CATEGORIES: Record<string, EventType[]> = {
-  'Status Updates': ['THINKING', 'WORKING', 'EXECUTING', 'IDLE', 'ERROR'],
+export const EVENT_CATEGORIES: Record<string, string[]> = {
+  'Status Updates': ['THINKING', 'WORKING', 'EXECUTING', 'CODING', 'IDLE', 'ERROR'],
+  'Activity States': ['DISCUSSING', 'REVIEWING', 'BREAK'],
   'Task Management': ['TASK_COMPLETE', 'WORK_REQUEST', 'WORK_COMPLETE'],
   'Communication': ['MESSAGE_SEND', 'MESSAGE_RECEIVE', 'REVIEW_REQUEST', 'FEEDBACK'],
   'Custom': ['CUSTOM_EVENT'],
 }
 
 // Communication event types (show "To Agent" dropdown)
-export const COMMUNICATION_EVENTS: EventType[] = [
+export const COMMUNICATION_EVENTS: string[] = [
   'MESSAGE_SEND',
   'WORK_REQUEST',
   'REVIEW_REQUEST',
@@ -169,18 +170,23 @@ export const COMMUNICATION_EVENTS: EventType[] = [
 ]
 
 // Check if event type is a communication event
-export const isCommunicationEvent = (eventType: EventType): boolean => {
+export const isCommunicationEvent = (eventType: string): boolean => {
   return COMMUNICATION_EVENTS.includes(eventType)
 }
 
-// Payload templates for each event type
-export const EVENT_PAYLOAD_TEMPLATES: Record<EventType, Record<string, unknown>> = {
+// Payload templates for known event types
+export const EVENT_PAYLOAD_TEMPLATES: Record<string, Record<string, unknown>> = {
   // Status updates
   THINKING: { thought: "Analyzing requirements...", context: "task planning" },
   WORKING: { task: "Implementing feature", progress: 50 },
   EXECUTING: { action: "Running tests", command: "npm test" },
+  CODING: { task: "Writing implementation code", language: "typescript" },
   IDLE: { reason: "Waiting for dependencies", duration_seconds: 30 },
   ERROR: { error_type: "ValidationError", message: "Invalid input", details: "..." },
+  // Activity states
+  DISCUSSING: { task: "Team discussion", agent_state: "discussing" },
+  REVIEWING: { task: "Code review", agent_state: "reviewing" },
+  BREAK: { reason: "Coffee break", agent_state: "break" },
   // Task management
   TASK_COMPLETE: { task_id: "TASK-001", result: "success", output: "Feature implemented" },
   WORK_REQUEST: { task_id: "TASK-002", assignee: "", description: "Review this PR", priority: "high" },
@@ -215,4 +221,72 @@ export interface EventSendResponse {
   event_id: string
   timestamp: string
   status: string
+}
+
+// ============================================================
+// SDLC Simulator Types
+// ============================================================
+
+// 10 SDLC roles (from ref app) — enriched with fullName, description, tasks, skills
+export const SDLC_ROLES = [
+  { value: 'analyst', label: 'Analyst', fullName: 'Business Analyst', color: '#4ECDC4', icon: '📊', description: 'Business analysis and research specialist', tasks: ['Research market', 'Document requirements', 'Interview stakeholders'], skills: ['Research', 'Documentation', 'Analysis', 'Communication'] },
+  { value: 'pm', label: 'PM', fullName: 'Product Manager', color: '#FF6B6B', icon: '📋', description: 'Product requirements and planning expert', tasks: ['Create PRD', 'Define features', 'Prioritize backlog'], skills: ['Strategy', 'Prioritization', 'Communication', 'Vision'] },
+  { value: 'po', label: 'PO', fullName: 'Product Owner', color: '#FFE66D', icon: '👑', description: 'Product alignment and backlog manager', tasks: ['Manage backlog', 'Accept stories', 'Align teams'], skills: ['Decision Making', 'Alignment', 'Validation', 'Leadership'] },
+  { value: 'architect', label: 'Architect', fullName: 'System Architect', color: '#95E1D3', icon: '🏗️', description: 'System architecture and technical design expert', tasks: ['Design system', 'Define APIs', 'Tech decisions'], skills: ['System Design', 'Tech Stack', 'Scalability', 'Integration'] },
+  { value: 'ux', label: 'UX', fullName: 'UX Designer', color: '#DDA0DD', icon: '🎨', description: 'User experience and UI design specialist', tasks: ['User research', 'Create wireframes', 'Design UI'], skills: ['Design', 'Prototyping', 'User Research', 'Accessibility'] },
+  { value: 'sm', label: 'SM', fullName: 'Scrum Master', color: '#F7DC6F', icon: '🎯', description: 'Sprint planning and story preparation orchestrator', tasks: ['Plan sprints', 'Draft stories', 'Remove blockers'], skills: ['Agile', 'Facilitation', 'Planning', 'Coaching'] },
+  { value: 'dev', label: 'Dev', fullName: 'Developer', color: '#74B9FF', icon: '💻', description: 'Code implementation and testing specialist', tasks: ['Write code', 'Code review', 'Unit testing'], skills: ['Coding', 'Testing', 'Problem Solving', 'Collaboration'] },
+  { value: 'qa', label: 'QA', fullName: 'QA Engineer', color: '#A29BFE', icon: '🔍', description: 'Quality assurance and test architect', tasks: ['Write test cases', 'Automation', 'Bug verification'], skills: ['Testing', 'Automation', 'Quality Control', 'Detail-oriented'] },
+  { value: 'devops', label: 'DevOps', fullName: 'DevOps Engineer', color: '#FD79A8', icon: '⚙️', description: 'Infrastructure and deployment specialist', tasks: ['CI/CD pipeline', 'Infrastructure', 'Monitoring'], skills: ['Infrastructure', 'Automation', 'Security', 'Monitoring'] },
+  { value: 'orchestrator', label: 'Orchestrator', fullName: 'Project Orchestrator', color: '#00CEC9', icon: '🎭', description: 'Coordinates interactions between all agents', tasks: ['Coordinate agents', 'Manage workflow', 'Track progress'], skills: ['Coordination', 'Management', 'Communication', 'Overview'] },
+] as const
+
+export type SDLCRoleValue = typeof SDLC_ROLES[number]['value']
+
+// Get SDLC role info by value
+export const getSDLCRole = (role: string) => {
+  return SDLC_ROLES.find(r => r.value === role)
+}
+
+// Workflow step interface
+export interface WorkflowStep {
+  from: string
+  to: string
+  action: string
+  eventType: string
+  topics: { title: string; markdown: string }[]
+}
+
+// SDLC Workflow definition
+export interface SDLCWorkflow {
+  id: string
+  name: string
+  description: string
+  steps: WorkflowStep[]
+  requiredRoles: string[]
+}
+
+// Agent name pools
+export const AGENT_NAMES = {
+  male: ['Alex', 'Brian', 'Chris', 'David', 'Eric', 'Frank', 'George', 'Henry', 'Ivan', 'Jack'],
+  female: ['Anna', 'Beth', 'Cathy', 'Diana', 'Emma', 'Fiona', 'Grace', 'Helen', 'Ivy', 'Julia'],
+}
+
+// Workflow runner status
+export type WorkflowStatus = 'idle' | 'running' | 'paused' | 'completed' | 'error'
+
+// SDLC Event for history display
+export interface SDLCEvent {
+  id: string
+  timestamp: string
+  fromAgent: string
+  fromRole: string
+  toAgent: string
+  toRole: string
+  action: string
+  eventType: EventType
+  topicTitle: string
+  description?: string
+  status: 'pending' | 'success' | 'error'
+  error?: string
 }
