@@ -37,7 +37,11 @@ export class StateReconciler {
             case 'idle': return AGENT_STATES.IDLE;
             case 'thinking': return AGENT_STATES.THINKING;
             case 'working': return AGENT_STATES.WORKING;
-            case 'executing': return AGENT_STATES.CODING;
+            case 'executing': return AGENT_STATES.WORKING;
+            case 'coding': return AGENT_STATES.CODING;
+            case 'discussing': return AGENT_STATES.DISCUSSING;
+            case 'reviewing': return AGENT_STATES.REVIEWING;
+            case 'break': return AGENT_STATES.BREAK;
             case 'walking': return AGENT_STATES.WALKING;
             case 'error': return AGENT_STATES.IDLE;
             default: return AGENT_STATES.IDLE;

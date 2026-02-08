@@ -13,16 +13,16 @@ const DEFAULT_ROLES = {
 };
 
 const DEFAULT_DEPARTMENT_LAYOUT = [
-    { roleId: 'analyst', x: 0, y: 0, width: 5, height: 4 },
-    { roleId: 'pm', x: 7, y: 0, width: 5, height: 4 },
-    { roleId: 'po', x: 14, y: 0, width: 5, height: 4 },
-    { roleId: 'orchestrator', x: 21, y: 0, width: 6, height: 5 },
-    { roleId: 'architect', x: 0, y: 6, width: 5, height: 4 },
-    { roleId: 'ux', x: 7, y: 6, width: 5, height: 4 },
-    { roleId: 'sm', x: 14, y: 6, width: 5, height: 4 },
-    { roleId: 'dev', x: 0, y: 12, width: 7, height: 5 },
-    { roleId: 'qa', x: 9, y: 12, width: 6, height: 5 },
-    { roleId: 'devops', x: 17, y: 12, width: 6, height: 5 }
+    { roleId: 'analyst', x: 0, y: 0, width: 7, height: 6 },
+    { roleId: 'pm', x: 13, y: 0, width: 7, height: 6 },
+    { roleId: 'po', x: 26, y: 0, width: 7, height: 6 },
+    { roleId: 'orchestrator', x: 39, y: 0, width: 8, height: 7 },
+    { roleId: 'architect', x: 0, y: 12, width: 7, height: 6 },
+    { roleId: 'ux', x: 13, y: 12, width: 7, height: 6 },
+    { roleId: 'sm', x: 26, y: 12, width: 7, height: 6 },
+    { roleId: 'dev', x: 0, y: 24, width: 10, height: 7 },
+    { roleId: 'qa', x: 16, y: 24, width: 8, height: 7 },
+    { roleId: 'devops', x: 30, y: 24, width: 8, height: 7 }
 ];
 
 // Map backend role IDs to default layout role IDs
@@ -125,9 +125,9 @@ export class RoleRegistry {
             departments.push({
                 role,
                 x: 0,
-                y: 18 + overflowRow * 6,
-                width: 5,
-                height: 4
+                y: 37 + overflowRow * 8,
+                width: 7,
+                height: 6
             });
             usedRoleIds.add(roleId);
             overflowRow++;

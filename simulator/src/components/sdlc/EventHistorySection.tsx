@@ -1,4 +1,4 @@
-import type { SDLCEvent, EventType } from '../../types'
+import type { SDLCEvent } from '../../types'
 
 interface EventHistorySectionProps {
   events: SDLCEvent[]
@@ -16,9 +16,13 @@ const eventIconMap: Record<string, { icon: string; color: string }> = {
   THINKING: { icon: 'psychology', color: 'bg-purple-500/10 text-purple-400' },
   EXECUTING: { icon: 'play_arrow', color: 'bg-cyan-500/10 text-cyan-400' },
   IDLE: { icon: 'pause_circle', color: 'bg-[#a0aac8]/10 text-[#a0aac8]' },
+  CODING: { icon: 'terminal', color: 'bg-emerald-500/10 text-emerald-400' },
+  DISCUSSING: { icon: 'forum', color: 'bg-amber-500/10 text-amber-400' },
+  REVIEWING: { icon: 'fact_check', color: 'bg-teal-500/10 text-teal-400' },
+  BREAK: { icon: 'coffee', color: 'bg-gray-500/10 text-gray-400' },
 }
 
-function getEventIcon(eventType: EventType, status: string) {
+function getEventIcon(eventType: string, status: string) {
   if (status === 'error') return eventIconMap.ERROR
   return eventIconMap[eventType] || { icon: 'circle', color: 'bg-[#a0aac8]/10 text-[#a0aac8]' }
 }

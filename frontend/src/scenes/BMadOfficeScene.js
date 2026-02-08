@@ -31,7 +31,7 @@ export class BMadOfficeScene extends Phaser.Scene {
         this.uiManager = new UIManager(this);
 
         // World setup
-        this.cameras.main.setBounds(-500, -300, 4000, 3000).setZoom(0.75);
+        this.cameras.main.setBounds(-800, -600, 4500, 3500).setZoom(0.85);
         this.createBackground();
         this.setupInput();
         this.setupMinimap();
@@ -312,6 +312,29 @@ export class BMadOfficeScene extends Phaser.Scene {
             startTime: Date.now()
         });
 
+        // Build interaction data for the agent panel
+        const targetAgent = this.agentMap.get(movement.to_zone) ||
+            this.agents.find(a => a.role.id === aliasedZone || a.role.id === toZone);
+        if (movement.purpose === 'handoff' && targetAgent) {
+            // Find matching log for markdown content
+            const logs = this.uiManager._logs || [];
+            const matchingLog = logs.find(l =>
+                l.from_agent === movement.agent_id &&
+                (l.to_agent === movement.to_zone || l.to_agent === targetAgent?.agentId)
+            );
+            const interaction = {
+                fromAgent: agent,
+                toAgent: targetAgent,
+                action: movement.purpose || 'task handoff',
+                topic: {
+                    title: movement.artifact || matchingLog?.payload?.task || 'Task',
+                    markdown: matchingLog?.payload?.description || matchingLog?.payload?.content || matchingLog?.payload?.markdown || ''
+                }
+            };
+            agent.currentInteraction = interaction;
+            agent.lastInteraction = interaction;
+        }
+
         // H5: Progress reporting at 25/50/75% milestones
         const reportedMilestones = new Set();
         const companyId = this.selectedCompanyId;
@@ -322,6 +345,7 @@ export class BMadOfficeScene extends Phaser.Scene {
                 await new Promise(r => setTimeout(r, 3000));
                 const result = await this.api.completeMovement(companyId, movement.id);
                 if (result) this.activeMovements.delete(movement.id);
+                agent.currentInteraction = null;
                 agent.isBusy = false;
             } else if (movement.purpose === 'return') {
                 const result = await this.api.completeMovement(companyId, movement.id);
@@ -449,9 +473,8 @@ export class BMadOfficeScene extends Phaser.Scene {
     zoomIn() { this.cameras.main.setZoom(Math.min(2.5, this.cameras.main.zoom + 0.2)); }
     zoomOut() { this.cameras.main.setZoom(Math.max(0.3, this.cameras.main.zoom - 0.2)); }
     resetView() {
-        this.cameras.main.setZoom(0.75);
-        const center = IsoUtils.gridToIso(12, 8);
-        this.cameras.main.centerOn(center.x, center.y);
+        this.cameras.main.setZoom(0.85);
+        this.cameras.main.centerOn(900, 600);
     }
 
     // --- Rendering Helpers ---
@@ -459,7 +482,7 @@ export class BMadOfficeScene extends Phaser.Scene {
     createBackground() {
         const bg = this.add.graphics();
         bg.fillGradientStyle(0x0a0a1a, 0x0a0a1a, 0x1a1a3a, 0x1a1a3a, 1);
-        bg.fillRect(-500, -300, 5000, 4000).setDepth(-200);
+        bg.fillRect(-800, -600, 5500, 4500).setDepth(-200);
     }
 
     setupMinimap() {

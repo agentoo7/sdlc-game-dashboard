@@ -1,14 +1,14 @@
 import Phaser from 'phaser';
 
 const AGENT_STATES = {
-    IDLE: { id: 'idle', text: 'Idle', color: '#95a5a6', icon: '😊', animation: 'idle' },
-    WORKING: { id: 'working', text: 'Working', color: '#3498db', icon: '💼', animation: 'working' },
-    CODING: { id: 'coding', text: 'Coding', color: '#2ecc71', icon: '⌨️', animation: 'typing' },
-    THINKING: { id: 'thinking', text: 'Thinking', color: '#9b59b6', icon: '🤔', animation: 'thinking' },
-    DISCUSSING: { id: 'discussing', text: 'Discussing', color: '#f39c12', icon: '💬', animation: 'talking' },
-    REVIEWING: { id: 'reviewing', text: 'Reviewing', color: '#1abc9c', icon: '📝', animation: 'reading' },
-    BREAK: { id: 'break', text: 'Break', color: '#34495e', icon: '☕', animation: 'drinking' },
-    WALKING: { id: 'walking', text: 'Walking', color: '#16a085', icon: '🚶', animation: 'walking' }
+    IDLE: { id: 'idle', text: 'Đang nghỉ ngơi', color: '#95a5a6', icon: '😊', animation: 'idle' },
+    WORKING: { id: 'working', text: 'Đang làm việc', color: '#3498db', icon: '💼', animation: 'working' },
+    CODING: { id: 'coding', text: 'Đang code', color: '#2ecc71', icon: '⌨️', animation: 'typing' },
+    THINKING: { id: 'thinking', text: 'Đang suy nghĩ', color: '#9b59b6', icon: '🤔', animation: 'thinking' },
+    DISCUSSING: { id: 'discussing', text: 'Đang trao đổi', color: '#f39c12', icon: '💬', animation: 'talking' },
+    REVIEWING: { id: 'reviewing', text: 'Đang review', color: '#1abc9c', icon: '📝', animation: 'reading' },
+    BREAK: { id: 'break', text: 'Nghỉ giải lao', color: '#34495e', icon: '☕', animation: 'drinking' },
+    WALKING: { id: 'walking', text: 'Đang di chuyển', color: '#16a085', icon: '🚶', animation: 'walking' }
 };
 
 export { AGENT_STATES };
@@ -28,6 +28,7 @@ export class Agent {
         this.stats = { tasksCompleted: 0, hoursWorked: 0, interactions: 0 };
         this.isBusy = false;
         this.currentInteraction = null;
+        this.lastInteraction = null;
         this.hasError = false;
 
         // Visuals

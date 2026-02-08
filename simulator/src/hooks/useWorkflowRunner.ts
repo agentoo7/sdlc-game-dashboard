@@ -111,6 +111,8 @@ export function useWorkflowRunner({
       if (isStoppedRef.current) break
 
       const step = workflow.steps[i]
+      if (!step.topics || step.topics.length === 0) continue // Skip steps with no topics
+      const topic = step.topics[0] // Deterministic: always use first topic
       const sourceAgent = findAgentByRole(startAgents, step.from)
       const targetAgent = findAgentByRole(startAgents, step.to)
 
@@ -133,7 +135,7 @@ export function useWorkflowRunner({
         toRole: roleTo?.label || step.to,
         action: step.action,
         eventType: step.eventType,
-        topicTitle: step.topic.title,
+        topicTitle: topic.title,
         status: 'pending',
       }
       onEventSent(sdlcEvent)
@@ -143,7 +145,7 @@ export function useWorkflowRunner({
         company_id: company.id,
         agent_id: sourceAgent.id,
         event_type: step.eventType,
-        payload: { task: step.topic.title, description: step.topic.markdown },
+        payload: { task: topic.title, description: topic.markdown },
       }
       if (step.from !== step.to && targetAgent) {
         eventPayload.to_agent = targetAgent.id
@@ -164,7 +166,7 @@ export function useWorkflowRunner({
         ...prev,
         currentStep: i + 1,
         eventsSent: prev.eventsSent + 1,
-        currentAction: `${roleFrom?.icon || ''} ${step.from} ${step.action} ${roleTo?.icon || ''} ${step.to}`,
+        currentAction: `${roleFrom?.icon || ''} ${step.from} ${step.action} ${roleTo?.icon || ''} ${step.to}: ${topic.title}`,
       }))
 
       // Wait 15 seconds before next step (skip on last step)

@@ -1,9 +1,7 @@
-import type { EventType } from '../types'
-
 // Scenario event definition
 export interface ScenarioEvent {
   agentRole: string // Maps to actual agent by role
-  eventType: EventType
+  eventType: string
   payload: Record<string, unknown>
   delayMs: number // Wait before this event
 }

@@ -1,219 +1,439 @@
 import type { SDLCWorkflow } from '../types'
 
 export const SIMPLE_SHOP_WORKFLOW: SDLCWorkflow = {
-  id: 'simple-shop',
-  name: 'Simple Shop',
-  description: 'Full SDLC workflow for building a simple e-commerce shop — 20 steps across 10 roles',
-  requiredRoles: ['po', 'analyst', 'ux', 'architect', 'dev', 'qa', 'devops', 'pm', 'sm', 'orchestrator'],
+  id: 'sdlc-workflow',
+  name: 'SDLC Workflow',
+  description: 'Full SDLC workflow with rich multi-topic interactions across 10 roles',
+  requiredRoles: ['analyst', 'pm', 'po', 'architect', 'ux', 'sm', 'dev', 'qa', 'devops', 'orchestrator'],
   steps: [
-    // Phase 1: Planning
     {
-      from: 'po',
-      to: 'analyst',
-      action: 'kickoffs project with',
+      from: 'analyst', to: 'pm',
+      action: 'chia sẻ kết quả nghiên cứu với',
       eventType: 'WORK_REQUEST',
-      topic: {
-        title: 'Simple Shop Kickoff',
-        markdown: `## 🚀 Project: Simple Shop\n\n**Goal**: Build a fast e-commerce site for gamers.\n\n### Core Requirements\n- Dark mode default\n- Instant checkout\n- Twitch integration\n\n> "Speed is everything."`,
-      },
-    },
-    {
-      from: 'analyst',
-      to: 'ux',
-      action: 'delivers user journeys to',
-      eventType: 'WORK_REQUEST',
-      topic: {
-        title: 'Gamer User Journey',
-        markdown: `## 🎮 User Journey Map\n\n1. **Land**: Hero banner with latest game drop.\n2. **Shop**: Grid layout, auto-play trailers on hover.\n3. **Buy**: One-click purchase via Steam/Discord login.\n\n### Personas\n- **Pro**: Buys hardware.\n- **Casual**: Buys merch.`,
-      },
-    },
+      topics: [
+        {
+          title: 'User Persona Analysis',
+          markdown: `## 📊 User Persona Analysis
 
-    // Phase 2: Design
-    {
-      from: 'ux',
-      to: 'architect',
-      action: 'hands off designs to',
-      eventType: 'WORK_REQUEST',
-      topic: {
-        title: 'UI/UX Specifications',
-        markdown: `## 🎨 Design System: "Neon Nights"\n\n- **Colors**: #000000 (Bg), #00FF00 (Accent)\n- **Font**: Orbitron / Rajdhani\n- **Assets**: Glitch effect SVGs.\n\n**Wireframes attached.**`,
-      },
-    },
-    {
-      from: 'architect',
-      to: 'dev',
-      action: 'defines tech stack for',
-      eventType: 'WORK_REQUEST',
-      topic: {
-        title: 'Architecture Decision Record',
-        markdown: `## 🏗️ Stack Decision: ADR-001\n\n- **Frontend**: Vite + React + Tailwind\n- **Backend**: Node.js + NestJS\n- **DB**: MongoDB (Item catalog)\n- **Cache**: Redis (Cart session)\n\n> Approved for high concurrency.`,
-      },
-    },
+### Target Users
+- **Primary**: Enterprise managers (35-50 tuổi)
+- **Secondary**: Team leads (28-40 tuổi)
 
-    // Phase 3: Setup & Dev
-    {
-      from: 'dev',
-      to: 'dev',
-      action: 'initializes repo with',
-      eventType: 'WORKING',
-      topic: {
-        title: 'Repository Setup',
-        markdown: `## 💻 Git Init\n\n\`\`\`bash\ngit init simple-shop\nnpm create vite@latest client\nnest new server\n\`\`\`\n\n**Branches**:\n- \`main\` (Protected)\n- \`dev\` (Staging)\n- \`feat/*\` (Features)`,
-      },
-    },
-    {
-      from: 'po',
-      to: 'sm',
-      action: 'prioritizes backlog with',
-      eventType: 'WORK_REQUEST',
-      topic: {
-        title: 'Sprint 1 Backlog',
-        markdown: `## 🏃 Sprint 1 Goals\n\n1. **P0**: Homepage Hero Section\n2. **P0**: Product Grid\n3. **P1**: Add to Cart\n4. **P2**: User Login`,
-      },
-    },
-    {
-      from: 'sm',
-      to: 'dev',
-      action: 'assigns tasks to',
-      eventType: 'WORK_REQUEST',
-      topic: {
-        title: 'JIRA Assignments',
-        markdown: `## 📋 Task Board\n\n- **DEV-101**: Setup Layout (Assigned: Alex)\n- **DEV-102**: Build API /products (Assigned: Sarah)\n- **DEV-103**: Cart State Redux (Assigned: Mike)`,
-      },
-    },
-    {
-      from: 'dev',
-      to: 'dev',
-      action: 'scaffolds frontend with',
-      eventType: 'WORKING',
-      topic: {
-        title: 'Vite Setup',
-        markdown: `## ⚡ Vite Config\n\nConfigured aliases:\n- \`@components\`\n- \`@hooks\`\n\nInstalled dependencies:\n- \`axios\`\n- \`framer-motion\`\n- \`zustand\``,
-      },
-    },
-    {
-      from: 'dev',
-      to: 'dev',
-      action: 'implements API with',
-      eventType: 'WORKING',
-      topic: {
-        title: 'Product API',
-        markdown: `## 🔌 GET /api/products\n\nReturns:\n\`\`\`json\n[\n  { "id": 1, "name": "RGB Keyboard", "price": 99 },\n  { "id": 2, "name": "Pro Mouse", "price": 59 }\n]\n\`\`\``,
-      },
-    },
+### Key Insights
+1. **Pain points**: Khó theo dõi tiến độ team
+2. **Needs**: Dashboard trực quan, real-time updates
+3. **Behavior**: Sử dụng mobile 60% thời gian
 
-    // Phase 4: Review & Test
-    {
-      from: 'dev',
-      to: 'ux',
-      action: 'demos components to',
-      eventType: 'REVIEW_REQUEST',
-      topic: {
-        title: 'Storybook Review',
-        markdown: `## 📚 Component Library\n\n- **Button**: Primary (Neon), Secondary (Outline)\n- **Card**: Hover effects working.\n- **Navbar**: Responsive.\n\n*Feedback: Increase neon glow intensity.*`,
-      },
+### Recommendations
+\`\`\`
+- Ưu tiên mobile-first design
+- Tích hợp notification system
+- Simplify navigation flow
+\`\`\`
+
+> "Users prefer visual data over text-heavy reports"`
+        },
+        {
+          title: 'Competitor Analysis',
+          markdown: `## 🔍 Competitor Analysis
+
+### Top Competitors
+| Feature | Us | Competitor A | Competitor B |
+|---------|-----|-------------|--------------|
+| Price | $$$ | $$ | $$$$ |
+| UX | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| Features | 85% | 70% | 95% |
+
+### Market Gap
+- **AI-powered insights** - chưa ai làm tốt
+- **Vietnamese localization** - cơ hội lớn
+
+### Action Items
+- [ ] Focus on AI features
+- [ ] Improve onboarding
+- [ ] Add Vietnamese support`
+        }
+      ]
     },
     {
-      from: 'dev',
-      to: 'qa',
-      action: 'deploys to staging for',
+      from: 'pm', to: 'po',
+      action: 'trình bày PRD cho',
       eventType: 'WORK_REQUEST',
-      topic: {
-        title: 'Staging Release v0.1',
-        markdown: `## 🧪 Ready for QA\n\nURL: \`staging.simple-shop.internal\`\n\n**Test Areas**:\n- Homepage rendering\n- Product filtering\n- Cart persistence`,
-      },
+      topics: [
+        {
+          title: 'Feature Roadmap Q2',
+          markdown: `## 🗺️ Feature Roadmap Q2 2025
+
+### Sprint 1-2: Foundation
+- **User Authentication v2**
+  - OAuth 2.0 integration
+  - SSO support
+  - 2FA implementation
+
+### Sprint 3-4: Core Features
+- Dashboard redesign
+- Real-time notifications
+- Mobile app beta
+
+### Dependencies
+\`\`\`mermaid
+graph LR
+    A[Auth v2] --> B[Dashboard]
+    B --> C[Notifications]
+    C --> D[Mobile App]
+\`\`\`
+
+### Risks
+⚠️ **High**: Third-party API changes
+⚠️ **Medium**: Resource availability`
+        },
+        {
+          title: 'MVP Requirements',
+          markdown: `## 📦 MVP Requirements
+
+### Must Have (P0)
+- [x] User login/logout
+- [x] Basic dashboard
+- [ ] Data export (CSV)
+- [ ] Email notifications
+
+### Should Have (P1)
+- [ ] Advanced filtering
+- [ ] Team management
+- [ ] API access
+
+### Nice to Have (P2)
+- [ ] Dark mode
+- [ ] Custom themes
+- [ ] Integrations
+
+### Success Metrics
+| Metric | Target | Current |
+|--------|--------|---------|
+| DAU | 1000 | 450 |
+| Retention | 40% | 35% |
+| NPS | 50 | 42 |`
+        }
+      ]
     },
     {
-      from: 'qa',
-      to: 'dev',
-      action: 'reports bug to',
+      from: 'dev', to: 'qa',
+      action: 'bàn giao code để test cho',
+      eventType: 'WORK_REQUEST',
+      topics: [
+        {
+          title: 'Login Module',
+          markdown: `## 🔐 Login Module - Test Handoff
+
+### Changes
+- New OAuth flow implementation
+- Session management updates
+- Remember me feature
+
+### Test Cases Needed
+1. **Happy path**: Normal login flow
+2. **Edge cases**:
+   - Invalid credentials
+   - Expired tokens
+   - Network timeout
+
+### API Endpoints
+\`\`\`javascript
+POST /api/auth/login
+POST /api/auth/refresh
+DELETE /api/auth/logout
+\`\`\`
+
+### Known Issues
+⚠️ Token refresh có delay 2-3s
+
+### Environment
+- Branch: \`feature/auth-v2\`
+- Staging: https://staging.app.com`
+        },
+        {
+          title: 'Payment Integration',
+          markdown: `## 💳 Payment Integration
+
+### Supported Methods
+- Credit Card (Visa, Master)
+- Bank Transfer
+- E-wallets (MoMo, ZaloPay)
+
+### Test Scenarios
+| Scenario | Expected | Priority |
+|----------|----------|----------|
+| Success payment | Order confirmed | P0 |
+| Card declined | Error message | P0 |
+| Timeout | Retry option | P1 |
+| Refund | Money returned | P1 |
+
+### Test Cards
+\`\`\`
+Success: 4242 4242 4242 4242
+Decline: 4000 0000 0000 0002
+3DS: 4000 0027 6000 3184
+\`\`\`
+
+### Notes
+> Sandbox mode enabled for testing`
+        }
+      ]
+    },
+    {
+      from: 'qa', to: 'dev',
+      action: 'báo cáo bug cho',
       eventType: 'FEEDBACK',
-      topic: {
-        title: 'Bug: Cart Reset',
-        markdown: `## 🐛 Bug Report #404\n\n**Severity**: High\n\n**Issue**: Cart empties on page refresh.\n\n**Steps**:\n1. Add item\n2. Refresh page\n3. Cart is 0.\n\n**Expected**: LocalStorage persistence.`,
-      },
-    },
-    {
-      from: 'dev',
-      to: 'qa',
-      action: 'pushes hotfix to',
-      eventType: 'WORK_REQUEST',
-      topic: {
-        title: 'Fix: Persist Cart',
-        markdown: `## 🔧 Fix Details\n\nAdded \`zustand/persist\` middleware.\n\n\`\`\`javascript\nexport const useCart = create(persist(\n  (set) => ({ ... }),\n  { name: 'cart-storage' }\n))\n\`\`\``,
-      },
-    },
-    {
-      from: 'qa',
-      to: 'dev',
-      action: 'verifies fix with',
-      eventType: 'FEEDBACK',
-      topic: {
-        title: 'Regression Pass',
-        markdown: `## ✅ QA Signed Off\n\n- Cart persists: PASS\n- Login flow: PASS\n- Performance: 98/100 Lighthouse.\n\n**Ready for Prod.**`,
-      },
-    },
+      topics: [
+        {
+          title: 'Critical Bug #1234',
+          markdown: `## 🐛 Bug Report #1234
 
-    // Phase 5: Deployment & Launch
+### Summary
+**Login fails với special characters trong password**
+
+### Severity: 🔴 Critical
+
+### Steps to Reproduce
+1. Go to login page
+2. Enter email: test@example.com
+3. Enter password: \`P@ss!word#123\`
+4. Click Login
+
+### Expected
+- User logged in successfully
+
+### Actual
+- Error 500: Internal Server Error
+
+### Environment
+- Browser: Chrome 120
+- OS: Windows 11
+- Build: v2.3.1
+
+### Logs
+\`\`\`
+Error: Invalid escape sequence
+at validatePassword (auth.js:45)
+at login (auth.js:78)
+\`\`\`
+
+### Suggested Fix
+> Escape special chars trước khi validate`
+        },
+        {
+          title: 'UI Regression Report',
+          markdown: `## 🎨 UI Regression Report
+
+### Affected Areas
+- [ ] Dashboard layout
+- [x] Sidebar navigation
+- [x] Modal dialogs
+- [ ] Form inputs
+
+### Screenshots
+| Before | After |
+|--------|-------|
+| ✅ Aligned | ❌ Misaligned |
+
+### CSS Issues Found
+\`\`\`css
+/* Problem */
+.sidebar { margin-left: -10px; }
+
+/* Fix */
+.sidebar { margin-left: 0; }
+\`\`\`
+
+### Browser Compatibility
+- Chrome ✅
+- Firefox ❌ (layout broken)
+- Safari ⚠️ (minor issues)
+
+### Priority: 🟡 Medium`
+        }
+      ]
+    },
     {
-      from: 'devops',
-      to: 'dev',
-      action: 'configures pipeline for',
+      from: 'architect', to: 'dev',
+      action: 'hướng dẫn kiến trúc cho',
       eventType: 'WORK_REQUEST',
-      topic: {
-        title: 'GitHub Actions',
-        markdown: `## ⚙️ CI/CD Pipeline\n\n1. **Lint & Test**: On PR merge.\n2. **Build Docker**: Push to ECR.\n3. **Deploy**: Update K8s service.`,
-      },
+      topics: [
+        {
+          title: 'Microservices Pattern',
+          markdown: `## 🏗️ Microservices Architecture
+
+### Service Map
+\`\`\`
+┌─────────────┐
+│   Gateway   │
+└──────┬──────┘
+       │
+┌──────┴──────┐
+│             │
+▼             ▼
+┌─────┐   ┌─────┐
+│User │   │Order│
+│Svc  │   │Svc  │
+└─────┘   └─────┘
+\`\`\`
+
+### Communication
+- **Sync**: REST API, gRPC
+- **Async**: RabbitMQ, Kafka
+
+### Best Practices
+1. Single responsibility per service
+2. Database per service
+3. API versioning
+4. Circuit breaker pattern
+
+### Code Example
+\`\`\`javascript
+// Circuit Breaker
+const breaker = new CircuitBreaker(
+  callService,
+  { timeout: 3000, threshold: 5 }
+);
+\`\`\`
+
+> Keep services small and focused`
+        }
+      ]
     },
     {
-      from: 'devops',
-      to: 'architect',
-      action: 'provisions infra for',
+      from: 'ux', to: 'dev',
+      action: 'bàn giao design cho',
       eventType: 'WORK_REQUEST',
-      topic: {
-        title: 'AWS Environment',
-        markdown: `## ☁️ Infrastructure\n\n- **ECS**: Autoscaling group (min 2, max 10).\n- **CloudFront**: CDN for assets.\n- **MongoDB Atlas**: Cluster M10.`,
-      },
+      topics: [
+        {
+          title: 'Dashboard Redesign',
+          markdown: `## 🎨 Dashboard Redesign Specs
+
+### Design System
+- **Primary**: #3498db
+- **Secondary**: #2ecc71
+- **Font**: Inter, 14px base
+
+### Components
+| Component | Size | Spacing |
+|-----------|------|---------|
+| Card | 320px | 16px |
+| Button | 40px | 12px |
+| Input | 48px | 8px |
+
+### Responsive Breakpoints
+\`\`\`css
+/* Mobile */
+@media (max-width: 768px)
+
+/* Tablet */
+@media (max-width: 1024px)
+
+/* Desktop */
+@media (min-width: 1025px)
+\`\`\`
+
+### Figma Link
+🔗 [View Design](https://figma.com/...)
+
+### Animation
+- Transitions: 200ms ease
+- Hover states: scale(1.02)
+
+> Follow Material Design guidelines`
+        }
+      ]
     },
     {
-      from: 'orchestrator',
-      to: 'po',
-      action: 'requests signoff from',
-      eventType: 'REVIEW_REQUEST',
-      topic: {
-        title: 'Final Demo',
-        markdown: `## 🎥 Pre-flight Check\n\nAll P0 and P1 features complete.\n\n- **Budget**: On track.\n- **Timeline**: On schedule.\n\n*Waiting for Green Light...*`,
-      },
-    },
-    {
-      from: 'po',
-      to: 'orchestrator',
-      action: 'approves launch with',
-      eventType: 'FEEDBACK',
-      topic: {
-        title: 'GO FOR LAUNCH',
-        markdown: `## 🚀 Launch Decision\n\n**Status**: GO\n\nLet's release to the gamers! Good luck team.`,
-      },
-    },
-    {
-      from: 'devops',
-      to: 'orchestrator',
-      action: 'executes deployment for',
+      from: 'devops', to: 'dev',
+      action: 'hỗ trợ deploy cho',
       eventType: 'WORK_REQUEST',
-      topic: {
-        title: 'Deployment Logs',
-        markdown: `## 📜 Deploy Output\n\n> Building... DONE (14s)\n> Pushing image... DONE\n> Updating Service... DONE\n> Health Check... 200 OK\n\n**Service Live at 10.0.0.42**`,
-      },
+      topics: [
+        {
+          title: 'CI/CD Pipeline Setup',
+          markdown: `## ⚙️ CI/CD Pipeline
+
+### Pipeline Stages
+1. **Build** → 2. **Test** → 3. **Deploy**
+
+### GitHub Actions Config
+\`\`\`yaml
+name: Deploy
+on:
+  push:
+    branches: [main]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - run: ./deploy.sh
+\`\`\`
+
+### Environment Variables
+| Key | Staging | Prod |
+|-----|---------|------|
+| API_URL | stg.api | api |
+| DEBUG | true | false |
+
+### Rollback Command
+\`\`\`bash
+kubectl rollout undo deployment/app
+\`\`\`
+
+⚠️ **Note**: Always test in staging first`
+        }
+      ]
     },
     {
-      from: 'orchestrator',
-      to: 'pm',
-      action: 'announces launch of',
+      from: 'po', to: 'sm',
+      action: 'xác nhận user stories với',
+      eventType: 'WORK_REQUEST',
+      topics: [
+        {
+          title: 'Sprint Backlog',
+          markdown: `## Sprint Backlog
+
+- Story 1: Login flow
+- Story 2: Dashboard
+- Story 3: Reports`
+        }
+      ]
+    },
+    {
+      from: 'sm', to: 'dev',
+      action: 'phân công task cho',
+      eventType: 'WORK_REQUEST',
+      topics: [
+        {
+          title: 'Task Assignment',
+          markdown: `## Tasks
+
+| Task | Assignee | Points |
+|------|----------|--------|
+| API | Dev 1 | 5 |
+| UI | Dev 2 | 3 |`
+        }
+      ]
+    },
+    {
+      from: 'orchestrator', to: 'pm',
+      action: 'điều phối tiến độ với',
       eventType: 'MESSAGE_SEND',
-      topic: {
-        title: 'Simple Shop LIVE',
-        markdown: `## 🎉 WE ARE LIVE!\n\nSimple Shop is now available to customers.\n\n**Team Simple Shop wins.**`,
-      },
-    },
-  ],
+      topics: [
+        {
+          title: 'Project Status',
+          markdown: `## Status
+
+- ✅ Phase 1: Complete
+- 🔄 Phase 2: In Progress
+- ⏳ Phase 3: Pending`
+        }
+      ]
+    }
+  ]
 }

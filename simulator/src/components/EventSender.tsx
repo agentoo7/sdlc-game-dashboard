@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { api } from '../services/api'
-import type { Company, Agent, EventType, SentEvent } from '../types'
+import type { Company, Agent, SentEvent } from '../types'
 import { EVENT_CATEGORIES, EVENT_PAYLOAD_TEMPLATES, isCommunicationEvent } from '../types'
 import ScenarioPanel from './ScenarioPanel'
 
@@ -19,7 +19,7 @@ function EventSender({ company, agents, onEventSent, onEventUpdate }: EventSende
 
   // Form state
   const [selectedAgentId, setSelectedAgentId] = useState('')
-  const [selectedEventType, setSelectedEventType] = useState<EventType>('THINKING')
+  const [selectedEventType, setSelectedEventType] = useState('THINKING')
   const [toAgentId, setToAgentId] = useState('')
   const [payloadJson, setPayloadJson] = useState('')
   const [jsonError, setJsonError] = useState<string | null>(null)
@@ -263,7 +263,7 @@ function EventSender({ company, agents, onEventSent, onEventUpdate }: EventSende
                   <label className="block text-dashboard-muted text-sm mb-1">Event Type</label>
                   <select
                     value={selectedEventType}
-                    onChange={(e) => setSelectedEventType(e.target.value as EventType)}
+                    onChange={(e) => setSelectedEventType(e.target.value)}
                     className="w-full bg-dashboard-bg text-dashboard-text rounded-lg p-2 border border-gray-600 focus:border-blue-500 focus:outline-none text-sm"
                     disabled={sending}
                   >

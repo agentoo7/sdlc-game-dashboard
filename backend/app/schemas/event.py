@@ -1,33 +1,17 @@
 from datetime import datetime
-from enum import Enum
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-
-class EventType(str, Enum):
-    """Valid event types."""
-    # Core event types (Story 3.2)
-    THINKING = "THINKING"
-    WORKING = "WORKING"
-    EXECUTING = "EXECUTING"
-    IDLE = "IDLE"
-    ERROR = "ERROR"
-    TASK_COMPLETE = "TASK_COMPLETE"
-
-    # Communication event types (Story 3.3)
-    MESSAGE_SEND = "MESSAGE_SEND"
-    MESSAGE_RECEIVE = "MESSAGE_RECEIVE"
-
-    # Work events
-    WORK_REQUEST = "WORK_REQUEST"
-    WORK_COMPLETE = "WORK_COMPLETE"
-    REVIEW_REQUEST = "REVIEW_REQUEST"
-    FEEDBACK = "FEEDBACK"
-
-    # Custom event (Story 3.10)
-    CUSTOM_EVENT = "CUSTOM_EVENT"
+# Well-known event types (not enforced — any string accepted)
+KNOWN_EVENT_TYPES = {
+    "THINKING", "WORKING", "EXECUTING", "IDLE", "ERROR", "TASK_COMPLETE",
+    "MESSAGE_SEND", "MESSAGE_RECEIVE",
+    "WORK_REQUEST", "WORK_COMPLETE", "REVIEW_REQUEST", "FEEDBACK",
+    "CODING", "DISCUSSING", "REVIEWING", "BREAK",
+    "CUSTOM_EVENT",
+}
 
 
 class EventCreate(BaseModel):
@@ -35,7 +19,7 @@ class EventCreate(BaseModel):
 
     company_id: UUID
     agent_id: str  # Primary agent performing action
-    event_type: EventType
+    event_type: str = Field(..., min_length=1, max_length=100, pattern=r'^[A-Za-z0-9_]+$')  # Alphanumeric + underscore only
     payload: dict = {}
     to_agent: Optional[str] = None  # Target agent (for communication events)
 

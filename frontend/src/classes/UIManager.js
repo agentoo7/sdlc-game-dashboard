@@ -13,17 +13,26 @@ function escapeHtml(str) {
 // H1: Configure marked to escape raw HTML (prevent XSS from API payloads)
 marked.use({
     renderer: {
-        html(token) { return escapeHtml(typeof token === 'string' ? token : token.text); }
+        html(token) { return escapeHtml(typeof token === 'string' ? token : token.text); },
+        image() { return ''; }, // Block image tags (potential XSS vector)
     }
 });
 
 function renderMarkdown(md) {
-    return marked.parse(md, { breaks: true });
+    if (!md || typeof md !== 'string') return '';
+    // Sanitize: strip script tags and event handlers before parsing
+    const sanitized = md
+        .replace(/<script[\s\S]*?<\/script>/gi, '')
+        .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
+        .replace(/javascript\s*:/gi, '');
+    return marked.parse(sanitized, { breaks: true });
 }
 
 export class UIManager {
     constructor(scene) {
         this.scene = scene;
+        this._logs = [];
+        this._agentMap = null;
         this.setupEventListeners();
     }
 
@@ -183,6 +192,53 @@ export class UIManager {
             return;
         }
 
+        // Interaction detail (current or last)
+        const interaction = a.currentInteraction || a.lastInteraction;
+        let interactionHTML = '';
+        if (interaction) {
+            const i = interaction;
+            const fromName = escapeHtml(i.fromAgent?.name || '');
+            const toName = escapeHtml(i.toAgent?.name || '');
+            const fromIcon = escapeHtml(i.fromAgent?.role?.icon || '👤');
+            const toIcon = escapeHtml(i.toAgent?.role?.icon || '👤');
+            const fromColor = escapeHtml(i.fromAgent?.role?.colorHex || '#888');
+            const toColor = escapeHtml(i.toAgent?.role?.colorHex || '#888');
+            const topicTitle = escapeHtml(i.topic?.title || 'Task');
+            const topicMd = i.topic?.markdown || '';
+
+            let mdSection = '';
+            if (topicMd) {
+                mdSection = `
+                    <div class="markdown-container" id="agent-md">
+                        <div class="markdown-header">
+                            <span class="markdown-title">📄 Output / Nội dung</span>
+                            <button class="markdown-expand-btn" data-target="agent-md">Mở rộng</button>
+                        </div>
+                        <div class="markdown-content">${renderMarkdown(topicMd)}</div>
+                    </div>`;
+            }
+
+            interactionHTML = `
+                <div class="interaction-detail-box">
+                    <div class="interaction-detail-title">💬 Chi tiết trao đổi</div>
+                    <div class="interaction-participants">
+                        <div class="interaction-participant">
+                            <div class="interaction-participant-avatar" style="background:${fromColor}40;border-color:${fromColor};">${fromIcon}</div>
+                            <div class="interaction-participant-name">${fromName}</div>
+                        </div>
+                        <div class="interaction-arrow">→</div>
+                        <div class="interaction-participant">
+                            <div class="interaction-participant-avatar" style="background:${toColor}40;border-color:${toColor};">${toIcon}</div>
+                            <div class="interaction-participant-name">${toName}</div>
+                        </div>
+                    </div>
+                    <div class="interaction-action">${fromName} ${escapeHtml(i.action)} ${toName}</div>
+                    <div style="text-align:center;font-size:10px;color:#f39c12;margin:6px 0;">📌 ${topicTitle}</div>
+                    ${mdSection}
+                </div>`;
+        }
+
+        // Current task
         let taskHTML = '';
         if (a.currentTask) {
             taskHTML = `
@@ -192,9 +248,74 @@ export class UIManager {
                 </div>`;
         }
 
+        // Error indicator
         let errorHTML = '';
         if (a.hasError) {
             errorHTML = '<div style="color:#e74c3c;font-size:10px;margin-bottom:6px;">⚠️ Agent in error state</div>';
+        }
+
+        // Skills tags
+        const skills = a.role.skills || [];
+        const skillsHTML = skills.length > 0 ? `
+            <div class="skills-container">
+                <div class="skills-title">Skills</div>
+                <div class="skills-list">
+                    ${skills.map(s => `<span class="skill-tag" style="background:${escapeHtml(a.role.colorHex)}20;color:${escapeHtml(a.role.colorHex)};border:1px solid ${escapeHtml(a.role.colorHex)}40;">${escapeHtml(s)}</span>`).join('')}
+                </div>
+            </div>` : '';
+
+        // Per-agent activity history
+        const agentId = a.agentId;
+        const logs = this._logs || [];
+        const agentMap = this._agentMap;
+        const agentLogs = logs.filter(l => l.from_agent === agentId || l.to_agent === agentId);
+
+        let activityHTML = '';
+        if (agentLogs.length > 0) {
+            const items = agentLogs.slice(0, 8).map(log => {
+                const isInitiator = log.from_agent === agentId;
+                const otherAgentId = isInitiator ? log.to_agent : log.from_agent;
+                const otherAgent = agentMap && agentMap.get(otherAgentId);
+                const otherName = escapeHtml(otherAgent?.name || otherAgentId || 'System');
+                const roleClass = isInitiator ? 'as-initiator' : 'as-receiver';
+                const roleText = isInitiator ? '→ Khởi tạo' : '← Nhận';
+                const roleColor = isInitiator ? '#27ae60' : '#3498db';
+                const time = escapeHtml(new Date(log.timestamp).toLocaleTimeString());
+
+                let statusIcon = '📋';
+                if (log.inferred_actions) {
+                    if (log.inferred_actions.some(x => x.includes('walk'))) statusIcon = '🚶';
+                    else if (log.inferred_actions.some(x => x.includes('status:working'))) statusIcon = '💼';
+                    else if (log.inferred_actions.some(x => x.includes('status:thinking'))) statusIcon = '🤔';
+                }
+
+                const topicTitle = escapeHtml(log.payload?.task || log.event_type);
+
+                return `
+                    <div class="agent-activity-item ${roleClass}" data-log-id="${escapeHtml(log.id)}">
+                        <div class="agent-activity-header">
+                            <span class="agent-activity-time">${time}</span>
+                            <span class="agent-activity-status">${statusIcon}</span>
+                            <span class="agent-activity-role-tag" style="color:${roleColor};">${roleText}</span>
+                        </div>
+                        <div class="agent-activity-desc">
+                            ${escapeHtml(log.event_type)} <span class="other-agent">${otherName}</span>
+                        </div>
+                        <div class="agent-activity-topic">📌 ${topicTitle}</div>
+                    </div>`;
+            }).join('');
+
+            activityHTML = `
+                <div class="agent-activity-section">
+                    <div class="agent-activity-title">📝 Lịch sử hoạt động (${agentLogs.length})</div>
+                    <div class="agent-activity-list">${items}</div>
+                </div>`;
+        } else {
+            activityHTML = `
+                <div class="agent-activity-section">
+                    <div class="agent-activity-title">📝 Lịch sử hoạt động</div>
+                    <div class="agent-no-activity">Chưa có hoạt động nào được ghi nhận</div>
+                </div>`;
         }
 
         container.innerHTML = `
@@ -205,18 +326,42 @@ export class UIManager {
                 </div>
                 ${errorHTML}
                 <div class="agent-status-box"><div class="status-dot" style="background:${a.state.color};"></div><div class="status-text">${a.state.icon} ${a.state.text}</div></div>
+                ${interactionHTML}
                 ${taskHTML}
-                <div class="agent-stats">
-                    <div class="stat-item"><div class="stat-value">${a.stats.tasksCompleted}</div><div class="stat-label">Tasks</div></div>
-                    <div class="stat-item"><div class="stat-value">${a.stats.hoursWorked}h</div><div class="stat-label">Hours</div></div>
-                    <div class="stat-item"><div class="stat-value">${a.stats.interactions}</div><div class="stat-label">Chats</div></div>
-                </div>
+                <p style="font-size:10px;color:#99aacc;margin:8px 0;">${escapeHtml(a.role.description || '')}</p>
+                ${skillsHTML}
+                ${activityHTML}
             </div>`;
+
+        // Bind click handlers for activity items
+        container.querySelectorAll('.agent-activity-item').forEach(el => {
+            el.addEventListener('click', () => {
+                const logId = el.dataset.logId;
+                const log = logs.find(l => l.id === logId);
+                if (log) this.openActivityModal(log, agentMap);
+            });
+        });
+
+        // Bind markdown expand button
+        const expandBtn = container.querySelector('.markdown-expand-btn');
+        if (expandBtn) {
+            expandBtn.addEventListener('click', () => {
+                const target = expandBtn.dataset.target;
+                const mdContainer = document.getElementById(target);
+                if (mdContainer) {
+                    mdContainer.classList.toggle('expanded');
+                    expandBtn.textContent = mdContainer.classList.contains('expanded') ? 'Thu gọn' : 'Mở rộng';
+                }
+            });
+        }
     }
 
     // --- Activity Log (Backend format) ---
 
     updateActivityLog(logs, agentMap) {
+        this._logs = logs || [];
+        this._agentMap = agentMap;
+
         const list = document.getElementById('activity-list');
         list.innerHTML = '';
 
@@ -250,7 +395,7 @@ export class UIManager {
         });
     }
 
-    openActivityModal(log, agentMap) {
+    openActivityModal(log, agentMap = this._agentMap) {
         if (!log) return;
         const modalBody = document.getElementById('modal-body');
 
@@ -266,25 +411,64 @@ export class UIManager {
         const toIcon = escapeHtml(toAgent?.role?.icon || '👤');
 
         const time = escapeHtml(new Date(log.timestamp).toLocaleTimeString());
-        const inferredStr = escapeHtml(log.inferred_actions ? log.inferred_actions.join(', ') : 'N/A');
 
-        // Render payload content
-        let contentHTML = '';
+        // Parse payload to extract title and markdown separately
+        let topicTitle = '';
+        let topicMarkdown = '';
+        let actionText = '';
         if (log.payload) {
-            if (log.payload.markdown || log.payload.content) {
-                const md = log.payload.markdown || log.payload.content;
-                contentHTML = `
-                    <div class="modal-markdown">
-                        <div class="modal-markdown-title"><span>📄</span><span>Content</span></div>
-                        <div class="modal-markdown-content">${renderMarkdown(md)}</div>
-                    </div>`;
+            // Try direct fields first (new format: { task: "title", description: "## markdown" })
+            if (log.payload.description && typeof log.payload.description === 'string' && log.payload.description.includes('#')) {
+                topicTitle = log.payload.task || '';
+                topicMarkdown = log.payload.description;
+            } else if (log.payload.markdown && typeof log.payload.markdown === 'string') {
+                topicTitle = log.payload.title || log.payload.task || '';
+                topicMarkdown = log.payload.markdown;
+            } else if (log.payload.content && typeof log.payload.content === 'string' && log.payload.content.includes('#')) {
+                topicTitle = log.payload.subject || log.payload.task || '';
+                topicMarkdown = log.payload.content;
+            } else if (typeof log.payload.task === 'string' && log.payload.task.includes('markdown')) {
+                // Legacy format: task contains stringified object "{ title: '...', markdown: '...' }"
+                const titleMatch = log.payload.task.match(/title:\s*['"`]([^'"`]+)['"`]/);
+                const mdMatch = log.payload.task.match(/markdown:\s*[`'"]([\s\S]*?)[`'"]\s*[,}]/);
+                topicTitle = titleMatch ? titleMatch[1] : '';
+                topicMarkdown = mdMatch ? mdMatch[1] : log.payload.task;
             } else {
-                contentHTML = `
-                    <div class="modal-markdown">
-                        <div class="modal-markdown-title"><span>📄</span><span>Payload</span></div>
-                        <div class="modal-markdown-content"><pre><code>${escapeHtml(JSON.stringify(log.payload, null, 2))}</code></pre></div>
-                    </div>`;
+                topicTitle = log.payload.task || log.payload.subject || '';
             }
+            // Derive action text from inferred_actions
+            if (log.inferred_actions) {
+                if (log.inferred_actions.some(a => a.includes('handoff'))) actionText = 'bàn giao cho';
+                else if (log.inferred_actions.some(a => a.includes('walk_to'))) actionText = 'gửi yêu cầu cho';
+                else if (log.inferred_actions.some(a => a.includes('status:working'))) actionText = 'đang làm việc';
+                else if (log.inferred_actions.some(a => a.includes('status:thinking'))) actionText = 'đang suy nghĩ';
+                else if (log.inferred_actions.some(a => a.includes('status:coding'))) actionText = 'đang code';
+                else if (log.inferred_actions.some(a => a.includes('status:reviewing'))) actionText = 'đang review';
+                else actionText = log.event_type.toLowerCase().replace(/_/g, ' ');
+            }
+        }
+        // Clean escaped newlines
+        if (topicMarkdown) {
+            topicMarkdown = topicMarkdown.replace(/\\\\n/g, '\n').replace(/\\n/g, '\n');
+        }
+
+        // Status text
+        const statusText = log.inferred_actions?.some(a => a.includes('walk_to')) ? '✅ Hoàn thành' : '📋 Đã ghi nhận';
+
+        // Render markdown content section
+        let contentHTML = '';
+        if (topicMarkdown) {
+            contentHTML = `
+                <div class="modal-markdown">
+                    <div class="modal-markdown-title"><span>📄</span><span>Nội dung chi tiết / Output</span></div>
+                    <div class="modal-markdown-content">${renderMarkdown(topicMarkdown)}</div>
+                </div>`;
+        } else if (log.payload) {
+            contentHTML = `
+                <div class="modal-markdown">
+                    <div class="modal-markdown-title"><span>📄</span><span>Payload</span></div>
+                    <div class="modal-markdown-content"><pre><code>${escapeHtml(JSON.stringify(log.payload, null, 2))}</code></pre></div>
+                </div>`;
         }
 
         // Participants section
@@ -318,10 +502,10 @@ export class UIManager {
         modalBody.innerHTML = `
             ${participantsHTML}
             <div class="modal-info-grid">
-                <div class="modal-info-item"><div class="modal-info-label">Event Type</div><div class="modal-info-value">${escapeHtml(log.event_type)}</div></div>
-                <div class="modal-info-item"><div class="modal-info-label">Timestamp</div><div class="modal-info-value">${time}</div></div>
-                <div class="modal-info-item"><div class="modal-info-label">Inferred Actions</div><div class="modal-info-value">${inferredStr}</div></div>
-                <div class="modal-info-item"><div class="modal-info-label">Log ID</div><div class="modal-info-value" style="font-size:9px;word-break:break-all;">${escapeHtml(log.id)}</div></div>
+                <div class="modal-info-item"><div class="modal-info-label">Thời gian</div><div class="modal-info-value">🕐 ${time}</div></div>
+                <div class="modal-info-item"><div class="modal-info-label">Trạng thái</div><div class="modal-info-value">${statusText}</div></div>
+                <div class="modal-info-item"><div class="modal-info-label">Hành động</div><div class="modal-info-value">${escapeHtml(actionText)}</div></div>
+                <div class="modal-info-item"><div class="modal-info-label">Chủ đề</div><div class="modal-info-value" style="color:#f39c12;">📌 ${escapeHtml(topicTitle || log.event_type)}</div></div>
             </div>
             ${contentHTML}`;
 
