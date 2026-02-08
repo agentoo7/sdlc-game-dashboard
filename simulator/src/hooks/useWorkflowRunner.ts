@@ -136,6 +136,7 @@ export function useWorkflowRunner({
         action: step.action,
         eventType: step.eventType,
         topicTitle: topic.title,
+        description: topic.markdown,
         status: 'pending',
       }
       onEventSent(sdlcEvent)

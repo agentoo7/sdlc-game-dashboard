@@ -286,6 +286,7 @@ export interface SDLCEvent {
   action: string
   eventType: EventType
   topicTitle: string
+  description?: string
   status: 'pending' | 'success' | 'error'
   error?: string
 }

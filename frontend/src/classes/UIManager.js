@@ -1,4 +1,11 @@
 import { marked } from 'marked';
+import mermaid from 'mermaid';
+
+mermaid.initialize({
+    startOnLoad: false,
+    theme: 'dark',
+    themeVariables: { primaryColor: '#1a1a3a', primaryTextColor: '#00ffff', lineColor: '#00ffff', secondaryColor: '#2a2a5a' },
+});
 
 function escapeHtml(str) {
     if (!str) return '';
@@ -526,5 +533,20 @@ export class UIManager {
         }
 
         document.getElementById('activity-modal').classList.add('active');
+
+        // Post-process: find mermaid code blocks and render as diagrams
+        modalBody.querySelectorAll('pre code').forEach(codeEl => {
+            if (codeEl.className && codeEl.className.includes('language-mermaid')) {
+                const pre = codeEl.parentElement;
+                const div = document.createElement('div');
+                div.className = 'mermaid';
+                div.textContent = codeEl.textContent;
+                pre.replaceWith(div);
+            }
+        });
+        const mermaidEls = modalBody.querySelectorAll('.mermaid');
+        if (mermaidEls.length > 0) {
+            mermaid.run({ nodes: mermaidEls }).catch(() => {});
+        }
     }
 }
