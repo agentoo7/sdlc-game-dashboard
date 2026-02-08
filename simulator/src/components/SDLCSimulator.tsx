@@ -29,6 +29,12 @@ export default function SDLCSimulator() {
     setAgents(newAgents)
   }, [])
 
+  const handleCompanyChange = useCallback((newCompany: Company) => {
+    setSelectedCompany(newCompany)
+    // Refresh company list so UI shows the auto-created company
+    loadCompanies()
+  }, [])
+
   const runner = useWorkflowRunner({
     company: selectedCompany,
     agents,
@@ -36,6 +42,7 @@ export default function SDLCSimulator() {
     onEventSent: handleEventSent,
     onEventUpdate: handleEventUpdate,
     onAgentsChange: handleAgentsChange,
+    onCompanyChange: handleCompanyChange,
   })
 
   // Load companies on mount
@@ -113,32 +120,6 @@ export default function SDLCSimulator() {
     setEventHistory([])
   }, [])
 
-  const handleBottomButton = () => {
-    switch (runner.status) {
-      case 'idle':
-      case 'completed':
-      case 'error':
-        runner.start()
-        break
-      case 'running':
-        runner.pause()
-        break
-      case 'paused':
-        runner.resume()
-        break
-    }
-  }
-
-  const bottomButtonConfig = {
-    idle: { label: 'Execute Workflow', icon: 'bolt', classes: 'bg-[#135bec] shadow-[#135bec]/30' },
-    running: { label: 'Pause Workflow', icon: 'pause', classes: 'bg-amber-500 shadow-amber-500/30' },
-    paused: { label: 'Resume Workflow', icon: 'play_arrow', classes: 'bg-emerald-500 shadow-emerald-500/30' },
-    completed: { label: 'Run Again', icon: 'replay', classes: 'bg-[#135bec] shadow-[#135bec]/30' },
-    error: { label: 'Retry Workflow', icon: 'replay', classes: 'bg-red-500 shadow-red-500/30' },
-  }
-
-  const btn = bottomButtonConfig[runner.status]
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0a0a1a] via-[#1a1a3a] to-[#0d0d2a] text-[#e0e8ff] font-display">
       {/* Header */}
@@ -159,13 +140,17 @@ export default function SDLCSimulator() {
       </header>
 
       {/* Main Content */}
-      <main className="p-4 space-y-6 pb-32">
+      <main className="p-4 space-y-6 pb-6">
         <WorkflowSection
           workflowStatus={runner.status}
           currentStep={runner.currentStep}
           totalSteps={runner.totalSteps}
           currentAction={runner.currentAction}
           error={runner.error}
+          onStart={runner.start}
+          onPause={runner.pause}
+          onResume={runner.resume}
+          onStop={runner.stop}
         />
 
         <CompanySection
@@ -192,19 +177,6 @@ export default function SDLCSimulator() {
 
         <EventHistorySection events={eventHistory} onClear={handleClearHistory} />
       </main>
-
-      {/* Fixed Bottom Button */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#0a0a1a] via-[#0a0a1a] to-transparent">
-        <button
-          onClick={handleBottomButton}
-          disabled={!selectedCompany && runner.status === 'idle'}
-          aria-label={btn.label}
-          className={`w-full text-white py-4 rounded-xl font-bold shadow-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all disabled:opacity-50 ${btn.classes}`}
-        >
-          <span className="material-symbols-outlined">{btn.icon}</span>
-          {btn.label}
-        </button>
-      </div>
     </div>
   )
 }

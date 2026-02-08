@@ -1,7 +1,18 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { api } from '../services/api'
 import type { Company, Agent, EventPayload, SDLCWorkflow, WorkflowStatus, SDLCEvent } from '../types'
-import { AGENT_NAMES, getSDLCRole } from '../types'
+import { getSDLCRole } from '../types'
+
+// BMAD canonical agent names per role
+const BMAD_AGENT_NAMES: Record<string, string> = {
+  analyst: 'Mary',
+  pm: 'John',
+  architect: 'Winston',
+  ux: 'Sally',
+  sm: 'Bob',
+  dev: 'Amelia',
+  qa: 'Quinn',
+}
 
 interface WorkflowRunnerState {
   status: WorkflowStatus
@@ -19,15 +30,11 @@ interface UseWorkflowRunnerProps {
   onEventSent: (event: SDLCEvent) => void
   onEventUpdate: (eventId: string, updates: Partial<SDLCEvent>) => void
   onAgentsChange: (agents: Agent[]) => void
+  onCompanyChange: (company: Company) => void
 }
 
 function findAgentByRole(agents: Agent[], role: string): Agent | undefined {
   return agents.find((a) => a.role === role)
-}
-
-function getRandomName(): string {
-  const pool = Math.random() > 0.5 ? AGENT_NAMES.male : AGENT_NAMES.female
-  return pool[Math.floor(Math.random() * pool.length)]
 }
 
 export function useWorkflowRunner({
@@ -37,6 +44,7 @@ export function useWorkflowRunner({
   onEventSent,
   onEventUpdate,
   onAgentsChange,
+  onCompanyChange,
 }: UseWorkflowRunnerProps) {
   const [state, setState] = useState<WorkflowRunnerState>({
     status: 'idle',
@@ -53,6 +61,9 @@ export function useWorkflowRunner({
   const currentStepRef = useRef(0)
   const runningRef = useRef(false)
   const abortControllerRef = useRef<AbortController | null>(null)
+  // Keep a mutable ref to the active company (may be auto-created during start)
+  const activeCompanyRef = useRef<Company | null>(company)
+  activeCompanyRef.current = company
 
   // Cleanup on unmount
   useEffect(() => {
@@ -63,20 +74,36 @@ export function useWorkflowRunner({
     }
   }, [])
 
-  const autoCreateMissingAgents = useCallback(async (): Promise<Agent[]> => {
-    if (!company) return agents
+  const autoCreateCompany = useCallback(async (): Promise<Company> => {
+    setState((prev) => ({ ...prev, currentAction: 'Creating company "Simple Shop"...' }))
+    const response = await api.createCompany('Simple Shop', 'BMAD SDLC demo — Simple Shop project')
+    if (!response.data) {
+      throw new Error(response.error || 'Failed to create company')
+    }
+    const newCompany: Company = {
+      ...response.data,
+      id: response.data.id || '',
+    }
+    activeCompanyRef.current = newCompany
+    onCompanyChange(newCompany)
+    return newCompany
+  }, [onCompanyChange])
 
+  const autoCreateAgents = useCallback(async (targetCompany: Company): Promise<Agent[]> => {
+    setState((prev) => ({ ...prev, currentAction: 'Creating BMAD agents...' }))
+
+    const existingAgents = [...agents]
     const missingRoles = workflow.requiredRoles.filter(
-      (role) => !findAgentByRole(agents, role)
+      (role) => !findAgentByRole(existingAgents, role)
     )
 
-    if (missingRoles.length === 0) return agents
+    if (missingRoles.length === 0) return existingAgents
 
-    let updatedAgents = [...agents]
+    let updatedAgents = [...existingAgents]
     for (const role of missingRoles) {
-      const name = getRandomName()
+      const name = BMAD_AGENT_NAMES[role] || role
       const agentId = `${role}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
-      const response = await api.createAgent(company.id, agentId, name, role)
+      const response = await api.createAgent(targetCompany.id, agentId, name, role)
       if (response.data) {
         updatedAgents.push({
           ...response.data,
@@ -86,18 +113,16 @@ export function useWorkflowRunner({
     }
 
     // Refresh agents from API for accurate state
-    const refreshed = await api.getAgents(company.id)
+    const refreshed = await api.getAgents(targetCompany.id)
     if (refreshed.data) {
       updatedAgents = refreshed.data
     }
 
     onAgentsChange(updatedAgents)
     return updatedAgents
-  }, [company, agents, workflow.requiredRoles, onAgentsChange])
+  }, [agents, workflow.requiredRoles, onAgentsChange])
 
-  const executeWorkflow = useCallback(async (startAgents: Agent[]) => {
-    if (!company) return
-
+  const executeWorkflow = useCallback(async (targetCompany: Company, startAgents: Agent[]) => {
     for (let i = currentStepRef.current; i < workflow.steps.length; i++) {
       // Check stopped
       if (isStoppedRef.current) break
@@ -143,7 +168,7 @@ export function useWorkflowRunner({
 
       // Build API payload
       const eventPayload: EventPayload = {
-        company_id: company.id,
+        company_id: targetCompany.id,
         agent_id: sourceAgent.id,
         event_type: step.eventType,
         payload: { task: topic.title, description: topic.markdown },
@@ -161,7 +186,7 @@ export function useWorkflowRunner({
         onEventUpdate(eventId, { status: 'error', error: response.error })
       }
 
-      // Update state (reuse roleFrom/roleTo from above)
+      // Update state
       currentStepRef.current = i + 1
       setState((prev) => ({
         ...prev,
@@ -183,13 +208,9 @@ export function useWorkflowRunner({
       setState((prev) => ({ ...prev, status: 'completed', currentAction: 'Workflow complete!' }))
     }
     runningRef.current = false
-  }, [company, workflow, onEventSent, onEventUpdate])
+  }, [workflow, onEventSent, onEventUpdate])
 
   const start = useCallback(async () => {
-    if (!company) {
-      setState((prev) => ({ ...prev, status: 'error', error: 'No company selected' }))
-      return
-    }
     if (runningRef.current) return
 
     runningRef.current = true
@@ -204,14 +225,21 @@ export function useWorkflowRunner({
       currentStep: 0,
       totalSteps: workflow.steps.length,
       eventsSent: 0,
-      currentAction: 'Auto-creating missing agents...',
+      currentAction: 'Initializing...',
       error: null,
     })
 
     try {
-      const readyAgents = await autoCreateMissingAgents()
+      // Step 1: Ensure company exists
+      let targetCompany = activeCompanyRef.current
+      if (!targetCompany) {
+        targetCompany = await autoCreateCompany()
+      }
 
-      // Verify all roles present
+      // Step 2: Create BMAD agents
+      const readyAgents = await autoCreateAgents(targetCompany)
+
+      // Step 3: Verify all roles present
       const stillMissing = workflow.requiredRoles.filter(
         (role) => !findAgentByRole(readyAgents, role)
       )
@@ -225,8 +253,9 @@ export function useWorkflowRunner({
         return
       }
 
+      // Step 4: Execute workflow
       setState((prev) => ({ ...prev, currentAction: 'Starting workflow...' }))
-      await executeWorkflow(readyAgents)
+      await executeWorkflow(targetCompany, readyAgents)
     } catch (err) {
       setState((prev) => ({
         ...prev,
@@ -235,7 +264,7 @@ export function useWorkflowRunner({
       }))
       runningRef.current = false
     }
-  }, [company, workflow, autoCreateMissingAgents, executeWorkflow])
+  }, [workflow, autoCreateCompany, autoCreateAgents, executeWorkflow])
 
   const pause = useCallback(() => {
     isPausedRef.current = true
