@@ -1,5 +1,47 @@
 import type { SDLCWorkflow } from '../types'
 
+// Final delivery HTML — no indentation to prevent marked from creating code blocks
+const SIMPLE_SHOP_HTML = [
+  '## 🚀 Simple Shop - Sản phẩm hoàn thiện',
+  '',
+  '### Deploy Status: ✅ Production Ready',
+  '- **URL**: https://simple-shop.app',
+  '- **Version**: v1.0.0',
+  '- **Build**: #128 passed',
+  '',
+  '---',
+  '',
+  '<div style="font-family: Inter, Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; overflow: hidden; color: #fff; max-width: 100%;">',
+  '<div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; background: rgba(0,0,0,0.2);">',
+  '<div style="display: flex; align-items: center; gap: 8px;"><span style="font-size: 24px;">🛍️</span><span style="font-size: 18px; font-weight: 800; letter-spacing: -0.5px;">Simple Shop</span></div>',
+  '<div style="display: flex; gap: 20px; font-size: 13px; opacity: 0.9;"><span>🏠 Home</span><span>📦 Products</span><span>🛒 Cart (3)</span><span>👤 Account</span></div>',
+  '</div>',
+  '<div style="padding: 40px 24px; text-align: center;">',
+  '<div style="font-size: 12px; letter-spacing: 3px; text-transform: uppercase; opacity: 0.7; margin-bottom: 8px;">Welcome to</div>',
+  '<div style="font-size: 32px; font-weight: 800; margin: 0 0 12px 0; color: #fff;">Simple Shop</div>',
+  '<div style="font-size: 14px; opacity: 0.85; max-width: 400px; margin: 0 auto 24px;">Mua sắm thông minh, giao hàng nhanh chóng. Hàng ngàn sản phẩm chất lượng.</div>',
+  '<div style="display: inline-block; background: #fff; color: #764ba2; padding: 12px 32px; border-radius: 50px; font-weight: 700; font-size: 14px;">🔍 Tìm sản phẩm...</div>',
+  '</div>',
+  '<div style="display: flex; justify-content: center; gap: 32px; padding: 0 24px 24px; text-align: center;">',
+  '<div><div style="font-size: 28px; font-weight: 800;">1,200+</div><div style="font-size: 11px; opacity: 0.7;">Sản phẩm</div></div>',
+  '<div><div style="font-size: 28px; font-weight: 800;">50K+</div><div style="font-size: 11px; opacity: 0.7;">Khách hàng</div></div>',
+  '<div><div style="font-size: 28px; font-weight: 800;">4.8⭐</div><div style="font-size: 11px; opacity: 0.7;">Đánh giá</div></div>',
+  '</div>',
+  '<div style="padding: 24px; background: rgba(255,255,255,0.1);">',
+  '<div style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">🔥 Sản phẩm nổi bật</div>',
+  '<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">',
+  '<div style="background: rgba(255,255,255,0.15); border-radius: 12px; padding: 16px; text-align: center;"><div style="font-size: 40px; margin-bottom: 8px;">👟</div><div style="font-size: 13px; font-weight: 600;">Nike Air Max</div><div style="font-size: 11px; opacity: 0.7; margin: 4px 0;">Giày thể thao</div><div style="font-size: 15px; font-weight: 800; color: #ffd700;">2,500,000₫</div><div style="margin-top: 8px; background: #fff; color: #764ba2; padding: 6px 0; border-radius: 8px; font-size: 11px; font-weight: 700;">🛒 Thêm vào giỏ</div></div>',
+  '<div style="background: rgba(255,255,255,0.15); border-radius: 12px; padding: 16px; text-align: center;"><div style="font-size: 40px; margin-bottom: 8px;">📱</div><div style="font-size: 13px; font-weight: 600;">iPhone 15 Pro</div><div style="font-size: 11px; opacity: 0.7; margin: 4px 0;">Điện thoại</div><div style="font-size: 15px; font-weight: 800; color: #ffd700;">28,990,000₫</div><div style="margin-top: 8px; background: #fff; color: #764ba2; padding: 6px 0; border-radius: 8px; font-size: 11px; font-weight: 700;">🛒 Thêm vào giỏ</div></div>',
+  '<div style="background: rgba(255,255,255,0.15); border-radius: 12px; padding: 16px; text-align: center;"><div style="font-size: 40px; margin-bottom: 8px;">🎧</div><div style="font-size: 13px; font-weight: 600;">AirPods Pro</div><div style="font-size: 11px; opacity: 0.7; margin: 4px 0;">Phụ kiện</div><div style="font-size: 15px; font-weight: 800; color: #ffd700;">5,990,000₫</div><div style="margin-top: 8px; background: #fff; color: #764ba2; padding: 6px 0; border-radius: 8px; font-size: 11px; font-weight: 700;">🛒 Thêm vào giỏ</div></div>',
+  '</div>',
+  '</div>',
+  '<div style="padding: 16px 24px; background: rgba(0,0,0,0.3); display: flex; justify-content: space-between; align-items: center; font-size: 11px; opacity: 0.7;">',
+  '<span>© 2025 Simple Shop. All rights reserved.</span>',
+  '<div style="display: flex; gap: 16px;"><span>📧 support@simpleshop.vn</span><span>📞 1900-xxxx</span></div>',
+  '</div>',
+  '</div>',
+].join('\n')
+
 export const SIMPLE_SHOP_WORKFLOW: SDLCWorkflow = {
   id: 'sdlc-workflow',
   name: 'Simple Shop - BMAD SDLC Workflow',
@@ -635,6 +677,17 @@ graph LR
 - 🔄 Phase 4: Implementation - Sprint 1/4 Done (25%)
 
 > Team performance tốt cho sprint đầu tiên. Cần cải thiện estimation và CI/CD cho sprint 2.`
+        }
+      ]
+    },
+    {
+      from: 'dev', to: 'pm',
+      action: 'bàn giao sản phẩm Simple Shop cho',
+      eventType: 'WORK_COMPLETE',
+      topics: [
+        {
+          title: 'Simple Shop - Final Delivery',
+          markdown: SIMPLE_SHOP_HTML
         }
       ]
     }
