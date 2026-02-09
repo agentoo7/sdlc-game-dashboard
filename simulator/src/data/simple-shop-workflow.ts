@@ -1,11 +1,56 @@
 import type { SDLCWorkflow } from '../types'
 
+// Final delivery HTML — no indentation to prevent marked from creating code blocks
+const SIMPLE_SHOP_HTML = [
+  '## 🚀 Simple Shop - Sản phẩm hoàn thiện',
+  '',
+  '### Deploy Status: ✅ Production Ready',
+  '- **URL**: https://simple-shop.app',
+  '- **Version**: v1.0.0',
+  '- **Build**: #128 passed',
+  '',
+  '---',
+  '',
+  '<div style="font-family: Inter, Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; overflow: hidden; color: #fff; max-width: 100%;">',
+  '<div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; background: rgba(0,0,0,0.2);">',
+  '<div style="display: flex; align-items: center; gap: 8px;"><span style="font-size: 24px;">🛍️</span><span style="font-size: 18px; font-weight: 800; letter-spacing: -0.5px;">Simple Shop</span></div>',
+  '<div style="display: flex; gap: 20px; font-size: 13px; opacity: 0.9;"><span>🏠 Home</span><span>📦 Products</span><span>🛒 Cart (3)</span><span>👤 Account</span></div>',
+  '</div>',
+  '<div style="padding: 40px 24px; text-align: center;">',
+  '<div style="font-size: 12px; letter-spacing: 3px; text-transform: uppercase; opacity: 0.7; margin-bottom: 8px;">Welcome to</div>',
+  '<div style="font-size: 32px; font-weight: 800; margin: 0 0 12px 0; color: #fff;">Simple Shop</div>',
+  '<div style="font-size: 14px; opacity: 0.85; max-width: 400px; margin: 0 auto 24px;">Mua sắm thông minh, giao hàng nhanh chóng. Hàng ngàn sản phẩm chất lượng.</div>',
+  '<div style="display: inline-block; background: #fff; color: #764ba2; padding: 12px 32px; border-radius: 50px; font-weight: 700; font-size: 14px;">🔍 Tìm sản phẩm...</div>',
+  '</div>',
+  '<div style="display: flex; justify-content: center; gap: 32px; padding: 0 24px 24px; text-align: center;">',
+  '<div><div style="font-size: 28px; font-weight: 800;">1,200+</div><div style="font-size: 11px; opacity: 0.7;">Sản phẩm</div></div>',
+  '<div><div style="font-size: 28px; font-weight: 800;">50K+</div><div style="font-size: 11px; opacity: 0.7;">Khách hàng</div></div>',
+  '<div><div style="font-size: 28px; font-weight: 800;">4.8⭐</div><div style="font-size: 11px; opacity: 0.7;">Đánh giá</div></div>',
+  '</div>',
+  '<div style="padding: 24px; background: rgba(255,255,255,0.1);">',
+  '<div style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">🔥 Sản phẩm nổi bật</div>',
+  '<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">',
+  '<div style="background: rgba(255,255,255,0.15); border-radius: 12px; padding: 16px; text-align: center;"><div style="font-size: 40px; margin-bottom: 8px;">👟</div><div style="font-size: 13px; font-weight: 600;">Nike Air Max</div><div style="font-size: 11px; opacity: 0.7; margin: 4px 0;">Giày thể thao</div><div style="font-size: 15px; font-weight: 800; color: #ffd700;">2,500,000₫</div><div style="margin-top: 8px; background: #fff; color: #764ba2; padding: 6px 0; border-radius: 8px; font-size: 11px; font-weight: 700;">🛒 Thêm vào giỏ</div></div>',
+  '<div style="background: rgba(255,255,255,0.15); border-radius: 12px; padding: 16px; text-align: center;"><div style="font-size: 40px; margin-bottom: 8px;">📱</div><div style="font-size: 13px; font-weight: 600;">iPhone 15 Pro</div><div style="font-size: 11px; opacity: 0.7; margin: 4px 0;">Điện thoại</div><div style="font-size: 15px; font-weight: 800; color: #ffd700;">28,990,000₫</div><div style="margin-top: 8px; background: #fff; color: #764ba2; padding: 6px 0; border-radius: 8px; font-size: 11px; font-weight: 700;">🛒 Thêm vào giỏ</div></div>',
+  '<div style="background: rgba(255,255,255,0.15); border-radius: 12px; padding: 16px; text-align: center;"><div style="font-size: 40px; margin-bottom: 8px;">🎧</div><div style="font-size: 13px; font-weight: 600;">AirPods Pro</div><div style="font-size: 11px; opacity: 0.7; margin: 4px 0;">Phụ kiện</div><div style="font-size: 15px; font-weight: 800; color: #ffd700;">5,990,000₫</div><div style="margin-top: 8px; background: #fff; color: #764ba2; padding: 6px 0; border-radius: 8px; font-size: 11px; font-weight: 700;">🛒 Thêm vào giỏ</div></div>',
+  '</div>',
+  '</div>',
+  '<div style="padding: 16px 24px; background: rgba(0,0,0,0.3); display: flex; justify-content: space-between; align-items: center; font-size: 11px; opacity: 0.7;">',
+  '<span>© 2025 Simple Shop. All rights reserved.</span>',
+  '<div style="display: flex; gap: 16px;"><span>📧 support@simpleshop.vn</span><span>📞 1900-xxxx</span></div>',
+  '</div>',
+  '</div>',
+].join('\n')
+
 export const SIMPLE_SHOP_WORKFLOW: SDLCWorkflow = {
   id: 'sdlc-workflow',
-  name: 'SDLC Workflow',
-  description: 'Full SDLC workflow with rich multi-topic interactions across 10 roles',
-  requiredRoles: ['analyst', 'pm', 'po', 'architect', 'ux', 'sm', 'dev', 'qa', 'devops', 'orchestrator'],
+  name: 'Simple Shop - BMAD SDLC Workflow',
+  description: 'Full BMAD SDLC workflow: Analysis → Planning → Solutioning → Implementation',
+  requiredRoles: ['analyst', 'pm', 'ux', 'architect', 'sm', 'dev', 'qa'],
   steps: [
+    // ============================================================
+    // PHASE 1: ANALYSIS
+    // ============================================================
     {
       from: 'analyst', to: 'pm',
       action: 'chia sẻ kết quả nghiên cứu với',
@@ -55,13 +100,17 @@ export const SIMPLE_SHOP_WORKFLOW: SDLCWorkflow = {
         }
       ]
     },
+
+    // ============================================================
+    // PHASE 2: PLANNING
+    // ============================================================
     {
-      from: 'pm', to: 'po',
-      action: 'trình bày PRD cho',
+      from: 'pm', to: 'ux',
+      action: 'gửi PRD và yêu cầu thiết kế UX từ',
       eventType: 'WORK_REQUEST',
       topics: [
         {
-          title: 'Feature Roadmap Q2',
+          title: 'Feature Roadmap & PRD',
           markdown: `## 🗺️ Feature Roadmap Q2 2025
 
 ### Sprint 1-2: Foundation
@@ -117,12 +166,288 @@ graph LR
       ]
     },
     {
+      from: 'ux', to: 'pm',
+      action: 'bàn giao thiết kế UX cho',
+      eventType: 'WORK_COMPLETE',
+      topics: [
+        {
+          title: 'Dashboard UX Design',
+          markdown: `## 🎨 Dashboard Redesign Specs
+
+### Design System
+- **Primary**: #3498db
+- **Secondary**: #2ecc71
+- **Font**: Inter, 14px base
+
+### Components
+| Component | Size | Spacing |
+|-----------|------|---------|
+| Card | 320px | 16px |
+| Button | 40px | 12px |
+| Input | 48px | 8px |
+
+### Responsive Breakpoints
+\`\`\`css
+/* Mobile */
+@media (max-width: 768px)
+
+/* Tablet */
+@media (max-width: 1024px)
+
+/* Desktop */
+@media (min-width: 1025px)
+\`\`\`
+
+### Figma Link
+🔗 [View Design](https://figma.com/...)
+
+### Animation
+- Transitions: 200ms ease
+- Hover states: scale(1.02)
+
+> Follow Material Design guidelines`
+        },
+        {
+          title: 'User Flow & Wireframes',
+          markdown: `## 🧭 User Flow - Simple Shop
+
+### Main Navigation Flow
+\`\`\`mermaid
+graph TD
+    A[Login] --> B[Dashboard]
+    B --> C[Product List]
+    B --> D[Orders]
+    B --> E[Reports]
+    C --> F[Product Detail]
+    F --> G[Add to Cart]
+    G --> H[Checkout]
+    H --> I[Payment]
+    I --> J[Confirmation]
+\`\`\`
+
+### Key UX Decisions
+1. **3-click rule**: Mọi action chính trong 3 click
+2. **Progressive disclosure**: Chỉ hiện info cần thiết
+3. **Consistent feedback**: Mọi action có visual response
+
+### Wireframe Notes
+| Screen | Priority | Status |
+|--------|----------|--------|
+| Login | P0 | ✅ Done |
+| Dashboard | P0 | ✅ Done |
+| Product List | P0 | ✅ Done |
+| Checkout | P0 | 🔄 In Progress |
+| Reports | P1 | ⏳ Pending |
+
+> Mobile wireframes hoàn thành 80%, cần review lại tablet layout`
+        }
+      ]
+    },
+
+    // ============================================================
+    // PHASE 3: SOLUTIONING
+    // ============================================================
+    {
+      from: 'pm', to: 'architect',
+      action: 'yêu cầu thiết kế kiến trúc từ',
+      eventType: 'WORK_REQUEST',
+      topics: [
+        {
+          title: 'Architecture Requirements',
+          markdown: `## 📋 Yêu cầu kiến trúc - Simple Shop
+
+### Functional Requirements (từ PRD)
+- User authentication (OAuth 2.0, SSO, 2FA)
+- Product catalog với search & filter
+- Shopping cart & checkout flow
+- Payment integration (Stripe, MoMo, ZaloPay)
+- Real-time notifications
+- Admin dashboard
+
+### Non-Functional Requirements
+| Requirement | Target |
+|-------------|--------|
+| Response time | < 200ms (P95) |
+| Availability | 99.9% uptime |
+| Concurrent users | 10,000 |
+| Data storage | 5 năm retention |
+
+### Technical Constraints
+- **Budget**: Cloud hosting < $500/month
+- **Team**: 3 developers, 1 QA
+- **Timeline**: MVP trong 4 sprints (8 tuần)
+- **Stack preference**: React + Node.js
+
+### UX Highlights cần support
+- Mobile-first responsive
+- Real-time updates (WebSocket)
+- Offline capability cho mobile app
+
+> Architect cần đánh giá trade-offs và đề xuất kiến trúc phù hợp`
+        }
+      ]
+    },
+    {
+      from: 'architect', to: 'pm',
+      action: 'trình bày kiến trúc hệ thống cho',
+      eventType: 'WORK_COMPLETE',
+      topics: [
+        {
+          title: 'System Architecture',
+          markdown: `## 🏗️ Microservices Architecture - Simple Shop
+
+### Service Map
+\`\`\`
+┌─────────────────┐
+│   API Gateway   │
+│   (nginx)       │
+└────────┬────────┘
+         │
+┌────────┼────────┐
+│        │        │
+▼        ▼        ▼
+┌─────┐ ┌─────┐ ┌─────┐
+│User │ │Order│ │Notif│
+│Svc  │ │Svc  │ │Svc  │
+└──┬──┘ └──┬──┘ └──┬──┘
+   │       │       │
+   ▼       ▼       ▼
+┌─────┐ ┌─────┐ ┌─────┐
+│MySQL│ │MySQL│ │Redis│
+└─────┘ └─────┘ └─────┘
+\`\`\`
+
+### Communication Patterns
+- **Sync**: REST API cho client, gRPC cho internal
+- **Async**: RabbitMQ cho event-driven (order → notification)
+
+### Key Architecture Decisions
+1. **Monorepo** cho MVP - dễ manage với team nhỏ
+2. **Database per service** - tách biệt data
+3. **API versioning** - /api/v1/ prefix
+4. **Circuit breaker** - resilience pattern
+
+### Code Example
+\`\`\`javascript
+// Circuit Breaker Pattern
+const breaker = new CircuitBreaker(
+  callService,
+  { timeout: 3000, threshold: 5 }
+);
+\`\`\`
+
+### Deployment
+- **Staging**: Docker Compose
+- **Production**: Kubernetes (GKE)
+- **CI/CD**: GitHub Actions
+
+> Keep services small and focused. Bắt đầu monolith, tách service khi cần.`
+        }
+      ]
+    },
+    {
+      from: 'pm', to: 'sm',
+      action: 'bàn giao epics và user stories cho',
+      eventType: 'WORK_REQUEST',
+      topics: [
+        {
+          title: 'Sprint Backlog - Epic Breakdown',
+          markdown: `## 📋 Sprint Backlog - Simple Shop MVP
+
+### Epic 1: User Authentication (Sprint 1)
+| ID | User Story | Points | Priority |
+|----|-----------|--------|----------|
+| US-001 | As a user, I want to register with email/password | 3 | P0 |
+| US-002 | As a user, I want to login with OAuth 2.0 (Google) | 5 | P0 |
+| US-003 | As a user, I want to enable 2FA for security | 3 | P1 |
+| US-004 | As an admin, I want to manage user roles | 5 | P1 |
+
+### Epic 2: Product Catalog (Sprint 2)
+| ID | User Story | Points | Priority |
+|----|-----------|--------|----------|
+| US-005 | As a user, I want to browse products with pagination | 3 | P0 |
+| US-006 | As a user, I want to search products by name/category | 5 | P0 |
+| US-007 | As a user, I want to filter products by price/rating | 3 | P1 |
+| US-008 | As an admin, I want to CRUD products | 5 | P0 |
+
+### Epic 3: Order & Payment (Sprint 3-4)
+| ID | User Story | Points | Priority |
+|----|-----------|--------|----------|
+| US-009 | As a user, I want to add products to cart | 3 | P0 |
+| US-010 | As a user, I want to checkout and pay | 8 | P0 |
+| US-011 | As a user, I want to view order history | 3 | P1 |
+| US-012 | As an admin, I want to process refunds | 5 | P1 |
+
+### Sprint Velocity Target
+- **Team capacity**: 3 devs × 8 points = **24 points/sprint**
+- **Sprint duration**: 2 tuần
+
+### Definition of Done
+- [ ] Code reviewed & approved
+- [ ] Unit tests > 80% coverage
+- [ ] Integration tests passed
+- [ ] Deployed to staging
+- [ ] QA sign-off`
+        }
+      ]
+    },
+
+    // ============================================================
+    // PHASE 4: IMPLEMENTATION
+    // ============================================================
+    {
+      from: 'sm', to: 'dev',
+      action: 'phân công sprint tasks cho',
+      eventType: 'WORK_REQUEST',
+      topics: [
+        {
+          title: 'Sprint 1 - Task Assignment',
+          markdown: `## 🎯 Sprint 1: User Authentication
+
+### Sprint Goal
+> Hoàn thành đăng ký, đăng nhập, và OAuth flow cho Simple Shop
+
+### Task Breakdown
+| Task | Story | Assignee | Points | Status |
+|------|-------|----------|--------|--------|
+| Setup project structure | US-001 | Dev 1 | 1 | 🆕 |
+| Implement registration API | US-001 | Dev 1 | 2 | 🆕 |
+| Implement login/logout API | US-001 | Dev 2 | 2 | 🆕 |
+| OAuth 2.0 Google integration | US-002 | Dev 2 | 3 | 🆕 |
+| Session management & JWT | US-002 | Dev 1 | 2 | 🆕 |
+| Login/Register UI components | US-001 | Dev 3 | 3 | 🆕 |
+| OAuth callback handling UI | US-002 | Dev 3 | 2 | 🆕 |
+| Write unit tests | All | Dev 1 | 2 | 🆕 |
+| Integration testing | All | QA | 3 | 🆕 |
+
+### Acceptance Criteria - US-001
+\`\`\`
+GIVEN user on registration page
+WHEN fills valid email + password (min 8 chars, 1 uppercase, 1 number)
+THEN account created AND confirmation email sent
+AND user redirected to login page
+\`\`\`
+
+### Acceptance Criteria - US-002
+\`\`\`
+GIVEN user clicks "Login with Google"
+WHEN Google OAuth consent completed
+THEN user authenticated AND JWT token issued
+AND user redirected to dashboard
+\`\`\`
+
+### Daily Standup: 9:00 AM
+### Sprint Review: Friday tuần 2`
+        }
+      ]
+    },
+    {
       from: 'dev', to: 'qa',
       action: 'bàn giao code để test cho',
       eventType: 'WORK_REQUEST',
       topics: [
         {
-          title: 'Login Module',
+          title: 'Login Module - Test Handoff',
           markdown: `## 🔐 Login Module - Test Handoff
 
 ### Changes
@@ -255,183 +580,114 @@ at login (auth.js:78)
       ]
     },
     {
-      from: 'architect', to: 'dev',
-      action: 'hướng dẫn kiến trúc cho',
-      eventType: 'WORK_REQUEST',
+      from: 'dev', to: 'sm',
+      action: 'báo cáo hoàn thành sprint cho',
+      eventType: 'WORK_COMPLETE',
       topics: [
         {
-          title: 'Microservices Pattern',
-          markdown: `## 🏗️ Microservices Architecture
+          title: 'Sprint 1 Deliverables',
+          markdown: `## ✅ Sprint 1 - Kết quả hoàn thành
 
-### Service Map
+### Completed Stories
+| ID | Story | Points | Status |
+|----|-------|--------|--------|
+| US-001 | Registration with email/password | 3 | ✅ Done |
+| US-002 | Login with OAuth 2.0 | 5 | ✅ Done |
+| US-003 | Enable 2FA | 3 | ⚠️ 80% (UI done, SMS pending) |
+
+### Sprint Metrics
+- **Planned**: 16 points
+- **Completed**: 14 points
+- **Velocity**: 87.5%
+
+### Code Quality
 \`\`\`
-┌─────────────┐
-│   Gateway   │
-└──────┬──────┘
-       │
-┌──────┴──────┐
-│             │
-▼             ▼
-┌─────┐   ┌─────┐
-│User │   │Order│
-│Svc  │   │Svc  │
-└─────┘   └─────┘
-\`\`\`
-
-### Communication
-- **Sync**: REST API, gRPC
-- **Async**: RabbitMQ, Kafka
-
-### Best Practices
-1. Single responsibility per service
-2. Database per service
-3. API versioning
-4. Circuit breaker pattern
-
-### Code Example
-\`\`\`javascript
-// Circuit Breaker
-const breaker = new CircuitBreaker(
-  callService,
-  { timeout: 3000, threshold: 5 }
-);
+Unit Tests:     45 passed, 2 skipped
+Coverage:       83% (target: 80%) ✅
+Lint Warnings:  3 (non-blocking)
+Build Time:     42s
 \`\`\`
 
-> Keep services small and focused`
+### Bugs Fixed During Sprint
+- 🔴 #1234: Login special chars → **Fixed**
+- 🟡 #1235: Sidebar CSS regression → **Fixed**
+- 🟢 #1236: Typo in error message → **Fixed**
+
+### Carry-over to Sprint 2
+- US-003: SMS provider integration (2 points remaining)
+
+### Pull Requests
+| PR | Title | Reviewer | Status |
+|----|-------|----------|--------|
+| #42 | feat: OAuth 2.0 login | Dev 2 | ✅ Merged |
+| #43 | feat: registration flow | Dev 3 | ✅ Merged |
+| #44 | fix: special char bug | Dev 1 | ✅ Merged |
+
+> Overall sprint 1 thành công. Team đã deliver 87.5% planned work.`
         }
       ]
     },
     {
-      from: 'ux', to: 'dev',
-      action: 'bàn giao design cho',
-      eventType: 'WORK_REQUEST',
+      from: 'sm', to: 'pm',
+      action: 'báo cáo retrospective sprint cho',
+      eventType: 'FEEDBACK',
       topics: [
         {
-          title: 'Dashboard Redesign',
-          markdown: `## 🎨 Dashboard Redesign Specs
+          title: 'Sprint 1 Retrospective',
+          markdown: `## 🔄 Sprint 1 Retrospective - Simple Shop
 
-### Design System
-- **Primary**: #3498db
-- **Secondary**: #2ecc71
-- **Font**: Inter, 14px base
+### Sprint Summary
+- **Duration**: 2 tuần (06/01 - 06/14)
+- **Velocity**: 14/16 points (87.5%)
+- **Team**: 3 Devs + 1 QA
 
-### Components
-| Component | Size | Spacing |
-|-----------|------|---------|
-| Card | 320px | 16px |
-| Button | 40px | 12px |
-| Input | 48px | 8px |
+### ✅ What Went Well
+1. **OAuth integration** hoàn thành sớm 2 ngày
+2. **Code review process** chặt chẽ, bắt được 2 critical bugs sớm
+3. **Daily standup** đúng giờ, hiệu quả (< 15 phút)
+4. **Collaboration** giữa Dev và QA rất tốt
 
-### Responsive Breakpoints
-\`\`\`css
-/* Mobile */
-@media (max-width: 768px)
+### ❌ What Needs Improvement
+1. **Estimation**: US-003 (2FA) underestimated → SMS provider phức tạp hơn dự kiến
+2. **Documentation**: API docs chưa kịp update khi code thay đổi
+3. **Environment**: Staging deploy process mất 30 phút → cần tự động hóa
 
-/* Tablet */
-@media (max-width: 1024px)
+### 🎯 Action Items for Sprint 2
+| Action | Owner | Deadline |
+|--------|-------|----------|
+| Setup CI/CD auto-deploy staging | Dev 1 | Sprint 2 Day 3 |
+| Add API doc generation (Swagger) | Dev 2 | Sprint 2 Day 5 |
+| Review estimation process | SM | Sprint 2 Planning |
+| Complete US-003 SMS integration | Dev 3 | Sprint 2 Day 4 |
 
-/* Desktop */
-@media (min-width: 1025px)
+### 📊 Project Progress
+\`\`\`mermaid
+graph LR
+    A[Phase 1: Analysis] -->|✅| B[Phase 2: Planning]
+    B -->|✅| C[Phase 3: Solutioning]
+    C -->|✅| D[Phase 4: Implementation]
+    D -->|🔄 Sprint 1 Done| E[Sprint 2]
+    E -->|⏳| F[Sprint 3-4]
 \`\`\`
 
-### Figma Link
-🔗 [View Design](https://figma.com/...)
+### Overall Status
+- ✅ Phase 1: Analysis - Complete
+- ✅ Phase 2: Planning - Complete
+- ✅ Phase 3: Solutioning - Complete
+- 🔄 Phase 4: Implementation - Sprint 1/4 Done (25%)
 
-### Animation
-- Transitions: 200ms ease
-- Hover states: scale(1.02)
-
-> Follow Material Design guidelines`
+> Team performance tốt cho sprint đầu tiên. Cần cải thiện estimation và CI/CD cho sprint 2.`
         }
       ]
     },
     {
-      from: 'devops', to: 'dev',
-      action: 'hỗ trợ deploy cho',
-      eventType: 'WORK_REQUEST',
+      from: 'dev', to: 'pm',
+      action: 'bàn giao sản phẩm Simple Shop cho',
+      eventType: 'WORK_COMPLETE',
       topics: [
         {
-          title: 'CI/CD Pipeline Setup',
-          markdown: `## ⚙️ CI/CD Pipeline
-
-### Pipeline Stages
-1. **Build** → 2. **Test** → 3. **Deploy**
-
-### GitHub Actions Config
-\`\`\`yaml
-name: Deploy
-on:
-  push:
-    branches: [main]
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - run: npm ci
-      - run: npm test
-      - run: npm run build
-      - run: ./deploy.sh
-\`\`\`
-
-### Environment Variables
-| Key | Staging | Prod |
-|-----|---------|------|
-| API_URL | stg.api | api |
-| DEBUG | true | false |
-
-### Rollback Command
-\`\`\`bash
-kubectl rollout undo deployment/app
-\`\`\`
-
-⚠️ **Note**: Always test in staging first`
-        }
-      ]
-    },
-    {
-      from: 'po', to: 'sm',
-      action: 'xác nhận user stories với',
-      eventType: 'WORK_REQUEST',
-      topics: [
-        {
-          title: 'Sprint Backlog',
-          markdown: `## Sprint Backlog
-
-- Story 1: Login flow
-- Story 2: Dashboard
-- Story 3: Reports`
-        }
-      ]
-    },
-    {
-      from: 'sm', to: 'dev',
-      action: 'phân công task cho',
-      eventType: 'WORK_REQUEST',
-      topics: [
-        {
-          title: 'Task Assignment',
-          markdown: `## Tasks
-
-| Task | Assignee | Points |
-|------|----------|--------|
-| API | Dev 1 | 5 |
-| UI | Dev 2 | 3 |`
-        }
-      ]
-    },
-    {
-      from: 'orchestrator', to: 'pm',
-      action: 'điều phối tiến độ với',
-      eventType: 'MESSAGE_SEND',
-      topics: [
-        {
-          title: 'Project Status',
-          markdown: `## Status
-
-- ✅ Phase 1: Complete
-- 🔄 Phase 2: In Progress
-- ⏳ Phase 3: Pending`
+          title: 'Simple Shop - Final Delivery',
+          markdown: SIMPLE_SHOP_HTML
         }
       ]
     }

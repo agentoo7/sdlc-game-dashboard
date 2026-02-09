@@ -17,11 +17,11 @@ function escapeHtml(str) {
         .replace(/'/g, '&#039;');
 }
 
-// H1: Configure marked to escape raw HTML (prevent XSS from API payloads)
+// Configure marked — pass sanitized HTML through (XSS handled in renderMarkdown)
 marked.use({
     renderer: {
-        html(token) { return escapeHtml(typeof token === 'string' ? token : token.text); },
-        image() { return ''; }, // Block image tags (potential XSS vector)
+        html(token) { return typeof token === 'string' ? token : token.text; },
+        image() { return ''; },
     }
 });
 

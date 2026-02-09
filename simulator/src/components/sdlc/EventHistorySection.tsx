@@ -15,30 +15,23 @@ mermaid.initialize({
   },
 })
 
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-}
-
-// Configure marked for safety
+// Configure marked — pass sanitized HTML through (XSS handled in renderMarkdown)
 marked.use({
   renderer: {
     html(token) {
-      const text = typeof token === 'string' ? token : token.text
-      return escapeHtml(text)
+      return typeof token === 'string' ? token : token.text
     },
   },
 })
 
 function renderMarkdown(md: string): string {
   if (!md) return ''
+  // Strip dangerous patterns, allow safe HTML
   const sanitized = md
     .replace(/<script[\s\S]*?<\/script>/gi, '')
     .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
     .replace(/javascript\s*:/gi, '')
-  return marked.parse(sanitized, { breaks: true }) as string
+  return marked.parse(sanitized, { breaks: true, async: false }) as string
 }
 
 interface EventHistorySectionProps {

@@ -6,6 +6,10 @@ interface WorkflowSectionProps {
   totalSteps: number
   currentAction: string
   error: string | null
+  onStart: () => void
+  onPause: () => void
+  onResume: () => void
+  onStop: () => void
 }
 
 const statusConfig: Record<WorkflowStatus, { label: string; classes: string }> = {
@@ -16,12 +20,24 @@ const statusConfig: Record<WorkflowStatus, { label: string; classes: string }> =
   error: { label: 'ERROR', classes: 'bg-red-500/20 text-red-400' },
 }
 
+const buttonConfig: Record<WorkflowStatus, { label: string; icon: string; classes: string }> = {
+  idle: { label: 'Execute Workflow', icon: 'bolt', classes: 'bg-[#135bec] shadow-[#135bec]/30' },
+  running: { label: 'Pause Workflow', icon: 'pause', classes: 'bg-amber-500 shadow-amber-500/30' },
+  paused: { label: 'Resume Workflow', icon: 'play_arrow', classes: 'bg-emerald-500 shadow-emerald-500/30' },
+  completed: { label: 'Run Again', icon: 'replay', classes: 'bg-[#135bec] shadow-[#135bec]/30' },
+  error: { label: 'Retry Workflow', icon: 'replay', classes: 'bg-red-500 shadow-red-500/30' },
+}
+
 export default function WorkflowSection({
   workflowStatus,
   currentStep,
   totalSteps,
   currentAction,
   error,
+  onStart,
+  onPause,
+  onResume,
+  onStop,
 }: WorkflowSectionProps) {
   const badge = statusConfig[workflowStatus]
   const progress = totalSteps > 0 ? Math.round((currentStep / totalSteps) * 100) : 0
@@ -49,6 +65,39 @@ export default function WorkflowSection({
               <span className="material-symbols-outlined">expand_more</span>
             </div>
           </div>
+        </div>
+
+        {/* Action buttons */}
+        <div className="mt-3 flex gap-2">
+          <button
+            onClick={() => {
+              switch (workflowStatus) {
+                case 'idle':
+                case 'completed':
+                case 'error':
+                  onStart()
+                  break
+                case 'running':
+                  onPause()
+                  break
+                case 'paused':
+                  onResume()
+                  break
+              }
+            }}
+            className={`flex-1 text-white py-3 rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 active:scale-[0.98] transition-all ${buttonConfig[workflowStatus].classes}`}
+          >
+            <span className="material-symbols-outlined text-lg">{buttonConfig[workflowStatus].icon}</span>
+            {buttonConfig[workflowStatus].label}
+          </button>
+          {(workflowStatus === 'running' || workflowStatus === 'paused') && (
+            <button
+              onClick={onStop}
+              className="px-4 py-3 rounded-xl font-bold shadow-lg flex items-center justify-center active:scale-[0.98] transition-all bg-red-500/20 text-red-400 border border-red-400/30 hover:bg-red-500/30"
+            >
+              <span className="material-symbols-outlined text-lg">stop</span>
+            </button>
+          )}
         </div>
 
         {(workflowStatus === 'running' || workflowStatus === 'paused') && (
