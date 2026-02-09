@@ -35,6 +35,33 @@ function renderMarkdown(md) {
     return marked.parse(sanitized, { breaks: true });
 }
 
+// Status-specific actions checked FIRST (high priority), walk is low-priority fallback
+const STATUS_ICON_MAP = {
+    'status:discussing': '💬', handoff: '💬',
+    'status:working': '💼',
+    'status:coding': '⌨️',
+    'status:thinking': '🤔',
+    'status:reviewing': '📝',
+    'status:break': '☕',
+    'status:idle': '😊',
+};
+
+function deriveIcon(log, agentMap, useLiveState = false) {
+    const agent = agentMap && agentMap.get(log.from_agent);
+    // Only the latest entry per agent reflects live state (walking/discussing/idle)
+    if (useLiveState && agent) return agent.state.icon;
+    // Older entries: use historical inferred_actions
+    if (log.inferred_actions) {
+        for (const action of log.inferred_actions) {
+            for (const [key, icon] of Object.entries(STATUS_ICON_MAP)) {
+                if (action.includes(key)) return icon;
+            }
+        }
+    }
+    if (agent) return agent.state.icon;
+    return '✅';
+}
+
 export class UIManager {
     constructor(scene) {
         this.scene = scene;
@@ -125,6 +152,14 @@ export class UIManager {
         if (overlay) overlay.classList.add('hidden');
     }
 
+    // Re-render agent list + activity log with cached data (call when agent state changes)
+    refreshUI(agents, agentMap) {
+        this.updateAgentList(agents);
+        if (this._logs && this._logs.length > 0) {
+            this.updateActivityLog(this._logs, agentMap || this._agentMap);
+        }
+    }
+
     updateConnectionStatus(status) {
         const el = document.getElementById('connection-status');
         if (!el) return;
@@ -185,7 +220,7 @@ export class UIManager {
             div.innerHTML = `
                 <div class="agent-mini-avatar" style="background:${escapeHtml(a.role.colorHex)}40;">${escapeHtml(a.role.icon)}</div>
                 <div class="agent-mini-name">${escapeHtml(a.name)} <span style="color:#667788;font-size:8px;">(${escapeHtml(a.role.name)})</span></div>
-                <div class="agent-mini-status" style="background:${escapeHtml(a.state.color)};" title="${escapeHtml(a.state.text)}"></div>
+                <div class="agent-mini-status" style="background:${escapeHtml(a.state.color)};" title="${escapeHtml(a.state.text)}">${a.state.icon}</div>
             `;
             div.addEventListener('click', () => this.scene.selectAgentById(a.agentId || a.id));
             list.appendChild(div);
@@ -279,6 +314,7 @@ export class UIManager {
 
         let activityHTML = '';
         if (agentLogs.length > 0) {
+            let liveUsed = false;
             const items = agentLogs.slice(0, 8).map(log => {
                 const isInitiator = log.from_agent === agentId;
                 const otherAgentId = isInitiator ? log.to_agent : log.from_agent;
@@ -289,12 +325,9 @@ export class UIManager {
                 const roleColor = isInitiator ? '#27ae60' : '#3498db';
                 const time = escapeHtml(new Date(log.timestamp).toLocaleTimeString());
 
-                let statusIcon = '📋';
-                if (log.inferred_actions) {
-                    if (log.inferred_actions.some(x => x.includes('walk'))) statusIcon = '🚶';
-                    else if (log.inferred_actions.some(x => x.includes('status:working'))) statusIcon = '💼';
-                    else if (log.inferred_actions.some(x => x.includes('status:thinking'))) statusIcon = '🤔';
-                }
+                const useLive = isInitiator && !liveUsed;
+                if (useLive) liveUsed = true;
+                const statusIcon = deriveIcon(log, agentMap, useLive);
 
                 const topicTitle = escapeHtml(log.payload?.task || log.event_type);
 
@@ -374,18 +407,15 @@ export class UIManager {
 
         if (!logs || logs.length === 0) return;
 
+        const seenAgents = new Set();
         logs.forEach(log => {
             const time = new Date(log.timestamp).toLocaleTimeString();
             const fromName = (agentMap && agentMap.get(log.from_agent)?.name) || log.from_agent || 'System';
             const toName = (agentMap && agentMap.get(log.to_agent)?.name) || log.to_agent || '';
 
-            // Derive icon from inferred_actions
-            let icon = '📋';
-            if (log.inferred_actions) {
-                if (log.inferred_actions.some(a => a.includes('walk'))) icon = '🚶';
-                else if (log.inferred_actions.some(a => a.includes('status:working'))) icon = '💼';
-                else if (log.inferred_actions.some(a => a.includes('status:thinking'))) icon = '🤔';
-            }
+            const isLatest = !seenAgents.has(log.from_agent);
+            seenAgents.add(log.from_agent);
+            const icon = deriveIcon(log, agentMap, isLatest);
 
             const toText = toName ? ` → <span class="highlight">${escapeHtml(toName)}</span>` : '';
 
@@ -459,8 +489,11 @@ export class UIManager {
             topicMarkdown = topicMarkdown.replace(/\\\\n/g, '\n').replace(/\\n/g, '\n');
         }
 
-        // Status text
-        const statusText = log.inferred_actions?.some(a => a.includes('walk_to')) ? '✅ Hoàn thành' : '📋 Đã ghi nhận';
+        // Status icon + text (matching reference pattern)
+        const modalIcon = deriveIcon(log, agentMap);
+        const statusText = log.inferred_actions?.some(a => a.includes('walk')) ? `🚶 Đang di chuyển`
+            : log.inferred_actions?.some(a => a.includes('status:discussing') || a.includes('handoff')) ? `💬 Đang trao đổi`
+            : `${modalIcon} Hoàn thành`;
 
         // Render markdown content section
         let contentHTML = '';

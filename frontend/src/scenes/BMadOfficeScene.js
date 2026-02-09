@@ -31,7 +31,7 @@ export class BMadOfficeScene extends Phaser.Scene {
         this.uiManager = new UIManager(this);
 
         // World setup
-        this.cameras.main.setBounds(-800, -600, 4500, 3500).setZoom(0.85);
+        this.cameras.main.setBounds(-400, -100, 2900, 1700).setZoom(0.85);
         this.createBackground();
         this.setupInput();
         this.setupMinimap();
@@ -305,6 +305,7 @@ export class BMadOfficeScene extends Phaser.Scene {
 
         agent.isBusy = true;
         agent.setState(AGENT_STATES.WALKING);
+        this.uiManager.refreshUI(this.agents, this.agentMap);
 
         this.activeMovements.set(movement.id, {
             agentId: movement.agent_id,
@@ -342,6 +343,7 @@ export class BMadOfficeScene extends Phaser.Scene {
         agent.moveTo(targetX, targetY, async () => {
             if (movement.purpose === 'handoff') {
                 agent.setState(AGENT_STATES.DISCUSSING);
+                this.uiManager.refreshUI(this.agents, this.agentMap);
                 await new Promise(r => setTimeout(r, 3000));
                 const result = await this.api.completeMovement(companyId, movement.id);
                 if (result) this.activeMovements.delete(movement.id);
@@ -353,6 +355,7 @@ export class BMadOfficeScene extends Phaser.Scene {
                 agent.isBusy = false;
                 agent.setState(AGENT_STATES.IDLE);
             }
+            this.uiManager.refreshUI(this.agents, this.agentMap);
         }, (progress) => {
             // H5: Report progress at 25/50/75% milestones (fire-and-forget)
             const milestone = Math.floor(progress * 4) * 25;
@@ -474,7 +477,7 @@ export class BMadOfficeScene extends Phaser.Scene {
     zoomOut() { this.cameras.main.setZoom(Math.max(0.3, this.cameras.main.zoom - 0.2)); }
     resetView() {
         this.cameras.main.setZoom(0.85);
-        this.cameras.main.centerOn(900, 600);
+        this.cameras.main.centerOn(1050, 720);
     }
 
     // --- Rendering Helpers ---
@@ -482,7 +485,7 @@ export class BMadOfficeScene extends Phaser.Scene {
     createBackground() {
         const bg = this.add.graphics();
         bg.fillGradientStyle(0x0a0a1a, 0x0a0a1a, 0x1a1a3a, 0x1a1a3a, 1);
-        bg.fillRect(-800, -600, 5500, 4500).setDepth(-200);
+        bg.fillRect(-400, -100, 3300, 2100).setDepth(-200);
     }
 
     setupMinimap() {
@@ -493,7 +496,7 @@ export class BMadOfficeScene extends Phaser.Scene {
         this.time.addEvent({
             delay: 100, callback: () => {
                 ctx.fillStyle = 'rgba(10, 10, 30, 0.9)'; ctx.fillRect(0, 0, 160, 100);
-                const s = 0.028, ox = 10, oy = 5;
+                const s = 0.055, ox = 20, oy = 5;
                 Object.values(this.departments).forEach(d => {
                     ctx.fillStyle = d.role.colorHex + '60';
                     ctx.beginPath(); ctx.arc(d.center.x * s + ox, d.center.y * s + oy, 6, 0, Math.PI * 2); ctx.fill();

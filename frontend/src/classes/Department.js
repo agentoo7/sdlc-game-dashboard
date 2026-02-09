@@ -23,13 +23,14 @@ export class Department {
                 const iso = IsoUtils.gridToIso(x + dx, y + dy);
 
                 const overlay = this.scene.add.graphics();
-                overlay.fillStyle(role.color, 0.12);
+                overlay.fillStyle(role.color, 0.25);
                 overlay.beginPath();
                 overlay.moveTo(iso.x, iso.y - IsoUtils.halfTH);
                 overlay.lineTo(iso.x + IsoUtils.halfTW, iso.y);
                 overlay.lineTo(iso.x, iso.y + IsoUtils.halfTH);
                 overlay.lineTo(iso.x - IsoUtils.halfTW, iso.y);
                 overlay.closePath(); overlay.fillPath();
+                overlay.lineStyle(1, role.color, 0.5); overlay.strokePath();
                 overlay.setDepth(iso.y - 49);
                 this.gameObjects.push(overlay);
 
